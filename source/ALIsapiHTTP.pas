@@ -12,7 +12,7 @@ interface
   {$LEGACYIFEND ON} // http://docwiki.embarcadero.com/RADStudio/XE4/en/Legacy_IFEND_(Delphi)
 {$IFEND}
 
-{$IF CompilerVersion > 32} // tokyo
+{$IF CompilerVersion > 33} // rio
   {$MESSAGE WARN 'Check if Web.Win.IsapiHTTP / Web.HTTPApp was not updated and adjust the IFDEF'}
 {$IFEND}
 
@@ -388,12 +388,13 @@ function TALWebRequest.GetMethodType: TALHTTPMethod;
 var aMethodStr : AnsiString;
 begin
   aMethodStr := Method;
-       if ALSameText(aMethodStr, 'GET')    then result := HTTPmt_Get
-  else if ALSameText(aMethodStr, 'POST')   then result := HTTPmt_Post
-  else if ALSameText(aMethodStr, 'PUT')    then result := HTTPmt_Put
-  else if ALSameText(aMethodStr, 'HEAD')   then result := HTTPmt_Head
-  else if ALSameText(aMethodStr, 'TRACE')  then result := HTTPmt_Trace
-  else if ALSameText(aMethodStr, 'DELETE') then result := HTTPmt_Delete
+       if ALSameText(aMethodStr, 'GET')     then result := HTTPmt_Get
+  else if ALSameText(aMethodStr, 'POST')    then result := HTTPmt_Post
+  else if ALSameText(aMethodStr, 'PUT')     then result := HTTPmt_Put
+  else if ALSameText(aMethodStr, 'HEAD')    then result := HTTPmt_Head
+  else if ALSameText(aMethodStr, 'TRACE')   then result := HTTPmt_Trace
+  else if ALSameText(aMethodStr, 'DELETE')  then result := HTTPmt_Delete
+  else if ALSameText(aMethodStr, 'OPTIONS') then result := HTTPmt_Options
   else raise Exception.Create('Unknown method type');
 end;
 

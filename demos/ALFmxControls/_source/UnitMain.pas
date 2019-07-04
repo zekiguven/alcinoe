@@ -7,12 +7,12 @@ uses
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.StdCtrls,
   FMX.Controls.Presentation, FMX.Objects, ALFmxObjects, FMX.Layouts,
   ALFmxLayouts, fmx.types3D, ALFmxCommon, System.ImageList,
-  FMX.ImgList, ALFmxStdCtrls, FMX.TabControl, ALFmxTabControl,
-  FMX.ScrollBox, FMX.Edit, ALFmxEdit, ALVideoPlayer, FMX.Effects,
+  FMX.ImgList, ALFmxStdCtrls, ALFmxTabControl,
+  FMX.ScrollBox, FMX.Edit, ALFmxEdit, ALVideoPlayer, ALDatePickerDialog, FMX.Effects,
   {$IF Defined(IOS) or Defined(ANDROID)}
   Grijjy.ErrorReporting,
   {$ENDIF}
-  FMX.Filter.Effects, system.Messaging, FMX.ani, alFmxMemo;
+  FMX.Filter.Effects, system.Messaging, ALFMXAni, alFmxMemo;
 
 type
 
@@ -196,6 +196,10 @@ type
     Layout2: TLayout;
     Image5: TImage;
     ALMemo1: TALMemo;
+    Button11: TButton;
+    ALSwitch1: TALSwitch;
+    Layout5: TLayout;
+    Button23: TButton;
     procedure Button2Click(Sender: TObject);
     procedure Button255Click(Sender: TObject);
     procedure Button4Click(Sender: TObject);
@@ -217,7 +221,7 @@ type
     procedure ALTabControl1AniTransitionInit(const sender: TObject;
                                              const ATransition: TALTabTransition;
                                              const aVelocity: Double;
-                                             const aAnimation: TFloatAnimation);
+                                             const aAnimation: TALFloatPropertyAnimation);
     procedure ALTabControl1Resize(Sender: TObject);
     procedure ALVertScrollBox1ScrollBarInit(const sender: TObject; const aScrollBar: TALScrollBoxBar);
     procedure VScrollBarThumbMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Single);
@@ -236,7 +240,11 @@ type
     procedure ALMemo1Exit(Sender: TObject);
     procedure ALVideoPlayerSurface1VideoSizeChanged(const Sender: TObject;
       const width, height: Integer);
+    procedure Button11Click(Sender: TObject);
+    procedure ALSwitch1Change(Sender: TObject);
+    procedure Button23Click(Sender: TObject);
   private
+    FDatePickerDialog: TALDatePickerDialog;
     fALcheckbox2: TALcheckboxStopWatch;
     fcheckbox2: TcheckboxStopWatch;
     fLine: TLineStopWatch;
@@ -292,6 +300,21 @@ begin
  //
 end;
 
+procedure TForm1.ALSwitch1Change(Sender: TObject);
+begin
+  if ALSwitch1.IsChecked then begin
+    ALSwitch1.BackGround.Fill.Color := $fffbd7d7;
+    ALSwitch1.Thumb.Stroke.Color := $ffec6262;
+    ALSwitch1.Thumb.Fill.Color := $ffec6262;
+  end
+  else begin
+    ALSwitch1.BackGround.Fill.Color := $ffc5c5c5;
+    ALSwitch1.Thumb.Stroke.Color := $ffd5d5d5;
+    ALSwitch1.Thumb.Fill.Color := $ffffffff;
+  end;
+
+end;
+
 procedure TForm1.ALVertScrollBox1Click(Sender: TObject);
 begin
   SetFocused(nil);
@@ -300,7 +323,7 @@ end;
 procedure TForm1.ALTabControl1AniTransitionInit(const sender: TObject;
                                                 const ATransition: TALTabTransition;
                                                 const aVelocity: Double;
-                                                const aAnimation: TFloatAnimation);
+                                                const aAnimation: TALFloatPropertyAnimation);
 begin
   // aVelocity = pixels per seconds given by the anicalculations
   // ALTabControl1.Width - abs(ALTabControl1.activeTab.Position.X) = the number of pixel we need to scroll
@@ -562,6 +585,11 @@ begin
       (sender as TALTrackThumb).InvalidateRect(localrect);
     end;
   end;
+end;
+
+procedure TForm1.Button11Click(Sender: TObject);
+begin
+  ALSwitch1.IsChecked := not ALSwitch1.IsChecked;
 end;
 
 procedure TForm1.Button13Click(Sender: TObject);
@@ -1155,6 +1183,19 @@ begin
     end).Start;
 end;
 
+procedure TForm1.Button23Click(Sender: TObject);
+begin
+  ALFreeAndNil(fDatePickerDialog);
+  fDatePickerDialog := TALDatePickerDialog.create('OK', // const aBtnOKCaption: string;
+                                                  'Cancel', // const aBtnCancelCaption: string;
+                                                  '', // const aBtnClearCaption: string
+                                                  'this is a title');// const aTitle: String = ''
+  fDatePickerDialog.show(YearOf(now), // const aYear: integer;
+                         MonthOf(now), // const aMonth: integer;
+                         DayOfTheMonth(now)); // const aDayOfMonth: integer);
+
+end;
+
 procedure TForm1.Button255Click(Sender: TObject);
 begin
   fALRectangle1.clearBufBitmap;
@@ -1212,6 +1253,8 @@ begin
   {$ELSE}
   Application.OnException := ApplicationExceptionHandler;
   {$ENDIF}
+
+  fDatePickerDialog := nil;
 
   FVKKeyboardOpen := False;
   beginupdate;
@@ -1430,71 +1473,32 @@ procedure TForm1.FormResize(Sender: TObject);
 begin
   ALLog('FormResize', 'width: ' + FloatToStr(width) + ' - ' + FloatToStr(height));
   ALVideoPlayerSurface1.Height := (width / 1920) * 1080;
+
+  {$IF Defined(ANDROID)}
+  //handle the action bar under lollipop
+  if FVKKeyboardOpen then
+    AlVertScrollBox1.AniCalculations.ViewportPosition := AlVertScrollBox1.AniCalculations.MaxTarget.Point;
+  {$ENDIF}
+
 end;
 
 procedure TForm1.FormVirtualKeyboardHidden(Sender: TObject;
   KeyboardVisible: Boolean; const Bounds: TRect);
 begin
-
   ALLog('FormVirtualKeyboardHidden', 'FormVirtualKeyboardHidden');
   FVKKeyboardOpen := False;
-
-  // wait 100 ms before to remove the padding in case the keyboard is
-  // just swaping control
-  TThread.CreateAnonymousThread(
-    procedure
-    begin
-      sleep(100);
-      TThread.Synchronize(nil,
-        procedure
-        begin
-          if FVKKeyboardOpen then exit;
-          AlVertScrollBox1.margins.Bottom := 0;
-          AlVertScrollBox1.AniCalculations.TouchTracking := [ttVertical];
-        end);
-    end).Start;
-
+  AlVertScrollBox1.margins.Bottom := 0;
+  AlVertScrollBox1.AniCalculations.TouchTracking := [ttVertical];
 end;
 
 procedure TForm1.FormVirtualKeyboardShown(Sender: TObject;
   KeyboardVisible: Boolean; const Bounds: TRect);
 begin
-
   ALLog('FormVirtualKeyboardShown', 'FormVirtualKeyboardShown');
   FVKKeyboardOpen := True;
-
-  // when the keyboard is show, sometime the suggestion bar of the keyboard
-  // is not show imediatly. so wait around 250ms before visually hide it via
-  // the padding
-  {$IFDEF ANDROID}
-  if AlVertScrollBox1.margins.Bottom > Bounds.height then begin
-    TThread.CreateAnonymousThread(
-      procedure
-      var aTmpBound: TRect;
-      begin
-        sleep(250);
-        TThread.Synchronize(nil,
-          procedure
-          begin
-            if not FVKKeyboardOpen then exit;
-            ALObtainKeyboardRect(aTmpBound);
-            AlVertScrollBox1.margins.Bottom := aTmpBound.height;
-            AlVertScrollBox1.VScrollBar.Value := AlVertScrollBox1.VScrollBar.Max;
-            AlVertScrollBox1.AniCalculations.TouchTracking := [];
-          end);
-      end).Start;
-  end
-  else begin
-    AlVertScrollBox1.margins.Bottom := Bounds.height;
-    AlVertScrollBox1.VScrollBar.Value := AlVertScrollBox1.VScrollBar.Max;
-    AlVertScrollBox1.AniCalculations.TouchTracking := [];
-  end;
-  {$ELSE}
   AlVertScrollBox1.margins.Bottom := Bounds.height;
   AlVertScrollBox1.VScrollBar.Value := AlVertScrollBox1.VScrollBar.Max;
   AlVertScrollBox1.AniCalculations.TouchTracking := [];
-  {$ENDIF}
-
 end;
 
 { TALTextStopWatch }

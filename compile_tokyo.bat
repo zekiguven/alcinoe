@@ -1,6 +1,5 @@
 @SET BDS=C:\Program Files (x86)\Embarcadero\Studio\19.0
 @SET FrameworkDir=C:\Windows\Microsoft.NET\Framework\v3.5
-@SET FrameworkVersion=v3.5
 @SET PATH=%FrameworkDir%;%PATH%
 
 @echo off
@@ -50,7 +49,7 @@ mkdir %FileName%
 MSBuild source\Alcinoe_tokyo.dproj /p:Config=Release /p:Platform=Win32
 IF ERRORLEVEL 1 goto ERROR
 
-call compilejar_tokyo.bat off
+call compilejar.bat off
 
 if "%INPUT%"=="Y" goto BUILD_DEMOS
 if "%INPUT%"=="y" goto BUILD_DEMOS
@@ -162,57 +161,71 @@ CHDIR ..
 CHDIR demos\
 MSBuild ALFmxControls\_source\ALFmxControls.dproj /p:Config=Release /p:Platform=Android /t:Build
 MSBuild ALFmxControls\_source\ALFmxControls.dproj /p:Config=Release /p:Platform=Android /t:Deploy
-IF ERRORLEVEL 1 PAUSE
-MSBuild ALFmxControls\_source\ALFmxControls.dproj /p:Config=Release /p:Platform=iOSSimulator /t:Build
+REM IF ERRORLEVEL 1 PAUSE
+REM MSBuild ALFmxControls\_source\ALFmxControls.dproj /p:Config=Release /p:Platform=iOSSimulator /t:Build
 IF ERRORLEVEL 1 PAUSE
 MSBuild ALFmxControls\_source\ALFmxControls.dproj /p:Config=Release /p:Platform=iOSDevice32 /t:Build
 IF ERRORLEVEL 1 PAUSE
 MSBuild ALFmxControls\_source\ALFmxControls.dproj /p:Config=Release /p:Platform=iOSDevice64 /t:Build
 IF ERRORLEVEL 1 PAUSE
-MSBuild ALFmxControls\_source\ALFmxControls.dproj /p:Config=Release /p:Platform=OSX32 /t:Build
-IF ERRORLEVEL 1 PAUSE
+REM MSBuild ALFmxControls\_source\ALFmxControls.dproj /p:Config=Release /p:Platform=OSX32 /t:Build
+REM IF ERRORLEVEL 1 PAUSE
 CHDIR ..
 
 CHDIR demos\
 MSBuild ALFirebaseMessagingDemo\_source\ALFirebaseMessagingDemo.dproj /p:Config=Release /p:Platform=Android /t:Build
 MSBuild ALFirebaseMessagingDemo\_source\ALFirebaseMessagingDemo.dproj /p:Config=Release /p:Platform=Android /t:Deploy
-IF ERRORLEVEL 1 PAUSE
-MSBuild ALFirebaseMessagingDemo\_source\ALFirebaseMessagingDemo.dproj /p:Config=Release /p:Platform=iOSSimulator /t:Build
+REM IF ERRORLEVEL 1 PAUSE
+REM MSBuild ALFirebaseMessagingDemo\_source\ALFirebaseMessagingDemo.dproj /p:Config=Release /p:Platform=iOSSimulator /t:Build
 IF ERRORLEVEL 1 PAUSE
 MSBuild ALFirebaseMessagingDemo\_source\ALFirebaseMessagingDemo.dproj /p:Config=Release /p:Platform=iOSDevice32 /t:Build
 IF ERRORLEVEL 1 PAUSE
 MSBuild ALFirebaseMessagingDemo\_source\ALFirebaseMessagingDemo.dproj /p:Config=Release /p:Platform=iOSDevice64 /t:Build
 IF ERRORLEVEL 1 PAUSE
-MSBuild ALFirebaseMessagingDemo\_source\ALFirebaseMessagingDemo.dproj /p:Config=Release /p:Platform=OSX32 /t:Build
-IF ERRORLEVEL 1 PAUSE
+REM MSBuild ALFirebaseMessagingDemo\_source\ALFirebaseMessagingDemo.dproj /p:Config=Release /p:Platform=OSX32 /t:Build
+REM IF ERRORLEVEL 1 PAUSE
 CHDIR ..
 
 CHDIR demos\
 MSBuild ALFacebookLogin\_source\ALFacebookLogin.dproj /p:Config=Release /p:Platform=Android /t:Build
 MSBuild ALFacebookLogin\_source\ALFacebookLogin.dproj /p:Config=Release /p:Platform=Android /t:Deploy
-IF ERRORLEVEL 1 PAUSE
-MSBuild ALFacebookLogin\_source\ALFacebookLogin.dproj /p:Config=Release /p:Platform=iOSSimulator /t:Build
+REM IF ERRORLEVEL 1 PAUSE
+REM MSBuild ALFacebookLogin\_source\ALFacebookLogin.dproj /p:Config=Release /p:Platform=iOSSimulator /t:Build
 IF ERRORLEVEL 1 PAUSE
 MSBuild ALFacebookLogin\_source\ALFacebookLogin.dproj /p:Config=Release /p:Platform=iOSDevice32 /t:Build
 IF ERRORLEVEL 1 PAUSE
 MSBuild ALFacebookLogin\_source\ALFacebookLogin.dproj /p:Config=Release /p:Platform=iOSDevice64 /t:Build
 IF ERRORLEVEL 1 PAUSE
-MSBuild ALFacebookLogin\_source\ALFacebookLogin.dproj /p:Config=Release /p:Platform=OSX32 /t:Build
-IF ERRORLEVEL 1 PAUSE
+REM MSBuild ALFacebookLogin\_source\ALFacebookLogin.dproj /p:Config=Release /p:Platform=OSX32 /t:Build
+REM IF ERRORLEVEL 1 PAUSE
 CHDIR ..
 
 CHDIR demos\
 MSBuild ALFmxEffects\_source\ALFmxEffects.dproj /p:Config=Release /p:Platform=Android /t:Build
 MSBuild ALFmxEffects\_source\ALFmxEffects.dproj /p:Config=Release /p:Platform=Android /t:Deploy
-IF ERRORLEVEL 1 PAUSE
-MSBuild ALFmxEffects\_source\ALFmxEffects.dproj /p:Config=Release /p:Platform=iOSSimulator /t:Build
+REM IF ERRORLEVEL 1 PAUSE
+REM MSBuild ALFmxEffects\_source\ALFmxEffects.dproj /p:Config=Release /p:Platform=iOSSimulator /t:Build
 IF ERRORLEVEL 1 PAUSE
 MSBuild ALFmxEffects\_source\ALFmxEffects.dproj /p:Config=Release /p:Platform=iOSDevice32 /t:Build
 IF ERRORLEVEL 1 PAUSE
 MSBuild ALFmxEffects\_source\ALFmxEffects.dproj /p:Config=Release /p:Platform=iOSDevice64 /t:Build
 IF ERRORLEVEL 1 PAUSE
-MSBuild ALFmxEffects\_source\ALFmxEffects.dproj /p:Config=Release /p:Platform=OSX32 /t:Build
+REM MSBuild ALFmxEffects\_source\ALFmxEffects.dproj /p:Config=Release /p:Platform=OSX32 /t:Build
+REM IF ERRORLEVEL 1 PAUSE
+CHDIR ..
+
+CHDIR demos\
+MSBuild ALLiveVideoChat\client\_source\ALLiveVideoChatClient.dproj /p:Config=Release /p:Platform=Android /t:Build
+MSBuild ALLiveVideoChat\client\_source\ALLiveVideoChatClient.dproj /p:Config=Release /p:Platform=Android /t:Deploy
+REM IF ERRORLEVEL 1 PAUSE
+REM MSBuild ALLiveVideoChat\client\_source\ALLiveVideoChatClient.dproj /p:Config=Release /p:Platform=iOSSimulator /t:Build
 IF ERRORLEVEL 1 PAUSE
+MSBuild ALLiveVideoChat\client\_source\ALLiveVideoChatClient.dproj /p:Config=Release /p:Platform=iOSDevice32 /t:Build
+IF ERRORLEVEL 1 PAUSE
+MSBuild ALLiveVideoChat\client\_source\ALLiveVideoChatClient.dproj /p:Config=Release /p:Platform=iOSDevice64 /t:Build
+IF ERRORLEVEL 1 PAUSE
+REM MSBuild ALLiveVideoChat\client\_source\ALLiveVideoChatClient.dproj /p:Config=Release /p:Platform=OSX32 /t:Build
+REM IF ERRORLEVEL 1 PAUSE
 CHDIR ..
 
 CHDIR demos\

@@ -11,6 +11,7 @@ interface
 {$ENDIF}
 
 uses system.classes,
+     system.sysutils,
      system.types,
      system.uitypes,
      {$IF defined(ios)}
@@ -42,15 +43,20 @@ Type
 function  AlGetExifOrientationInfo(const aFilename: String): TalExifOrientationInfo;
 procedure ALNormalizeImageOrientationV1(const aBitmap: Tbitmap; const aExifOrientationInfo: TalExifOrientationInfo);
 function  ALNormalizeImageOrientationV2(const aBitmap: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aExifOrientationInfo: TalExifOrientationInfo): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF};
+function  AlGetImageSignature(const aStream: TStream): Tbytes; overload;
+function  AlGetImageSignature(const aFileName: string): Tbytes; overload;
 function  AlDetectImageExtensionU(const aStream: TStream): String; overload;
 function  AlDetectImageExtensionU(const aFileName: string): String; overload;
 function  ALPrepareColor(const SrcColor: TAlphaColor; const Opacity: Single): TAlphaColor;
 
 {$IF defined(ANDROID)}
-function ALJBitmaptoTexture(const aBitmap: Jbitmap; const aVolatileTexture: boolean = true): TTexture;
+function ALJBitmaptoTexture(const aBitmap: Jbitmap): TTexture;
 {$ENDIF}
 {$IF defined(ANDROID) or defined(IOS)}
-function ALBitmapSurfacetoTexture(const aBitmapSurface: TbitmapSurface; const aVolatileTexture: boolean = true): TTexture;
+function ALBitmapSurfacetoTexture(const aBitmapSurface: TbitmapSurface): TTexture;
+{$ENDIF}
+{$IFDEF _USE_TEXTURE}
+function ALTransformBitmaptoTexture(var aBitmap: Tbitmap): TTexture;
 {$ENDIF}
 
 type
@@ -64,52 +70,52 @@ function  ALFitIntoAndCropAsMaskImageV1(const aStream: TCustomMemoryStream; cons
 function  ALFitIntoAndCropAsMaskImageV1(const aStream: TCustomMemoryStream; const aMask: Tbitmap): Tbitmap; overload;
 function  ALFitIntoAndCropAsMaskImageV2(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALFitIntoAndCropAsMaskImageV2(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALBlurFitIntoAndCropAsMaskImageV1(const aStream: TCustomMemoryStream; const aMask: Tbitmap; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single): Tbitmap; overload;
 function  ALBlurFitIntoAndCropAsMaskImageV1(const aStream: TCustomMemoryStream; const aMask: Tbitmap; aBlurRadius: single; const aBlurW, aBlurH: single): Tbitmap; overload;
 function  ALBlurFitIntoAndCropAsMaskImageV2(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALBlurFitIntoAndCropAsMaskImageV2(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; aBlurRadius: single; const aBlurW, aBlurH: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALBlurFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALBlurFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; aBlurRadius: single; const aBlurW, aBlurH: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALBlurFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALBlurFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; aBlurRadius: single; const aBlurW, aBlurH: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALLoadFitIntoAndCropResourceAsMaskImageV1(const aResName: String; const aMask: Tbitmap; const aCropCenter: TPointF): Tbitmap; overload;
 function  ALLoadFitIntoAndCropResourceAsMaskImageV1(const aResName: String; const aMask: Tbitmap): Tbitmap; overload;
 function  ALLoadFitIntoAndCropResourceAsMaskImageV2(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALLoadFitIntoAndCropResourceAsMaskImageV2(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadFitIntoAndCropResourceAsMaskImageV3(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadFitIntoAndCropResourceAsMaskImageV3(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadFitIntoAndCropResourceAsMaskImageV3(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadFitIntoAndCropResourceAsMaskImageV3(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 
 //resize the src image to make that one side fit w or h keeping the other side equal or bigger than w or h and then crop the src image as round rect
 function  ALFitIntoAndCropAsRoundRectImageV1(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single; const aCropCenter: TPointF): Tbitmap; overload;
 function  ALFitIntoAndCropAsRoundRectImageV1(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single): Tbitmap; overload;
 function  ALFitIntoAndCropAsRoundRectImageV2(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALFitIntoAndCropAsRoundRectImageV2(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoAndCropAsRoundRectImageV3(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoAndCropAsRoundRectImageV3(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoAndCropAsRoundRectImageV3(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoAndCropAsRoundRectImageV3(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 
 //resize the src image to make that one side fit w or h keeping the other side equal or bigger than w or h and then crop the src image as circle
 function  ALFitIntoAndCropAsCircleImageV1(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF): Tbitmap; overload;
 function  ALFitIntoAndCropAsCircleImageV1(const aStream: TCustomMemoryStream; const W, H: single): Tbitmap; overload;
 function  ALFitIntoAndCropAsCircleImageV2(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALFitIntoAndCropAsCircleImageV2(const aStream: TCustomMemoryStream; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALLoadFitIntoAndCropResourceAsCircleImageV1(const aResName: String; const W, H: single; const aCropCenter: TPointF): Tbitmap; overload;
 function  ALLoadFitIntoAndCropResourceAsCircleImageV1(const aResName: String; const W, H: single): Tbitmap; overload;
 function  ALLoadFitIntoAndCropResourceAsCircleImageV2(const aResName: String; const W, H: single; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALLoadFitIntoAndCropResourceAsCircleImageV2(const aResName: String; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadFitIntoAndCropResourceAsCircleImageV3(const aResName: String; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadFitIntoAndCropResourceAsCircleImageV3(const aResName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadFitIntoAndCropResourceAsCircleImageV3(const aResName: String; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadFitIntoAndCropResourceAsCircleImageV3(const aResName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALBlurFitIntoAndCropAsCircleImageV1(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single): Tbitmap; overload;
 function  ALBlurFitIntoAndCropAsCircleImageV1(const aStream: TCustomMemoryStream; const W, H: single; aBlurRadius: single; const aBlurW, aBlurH: single): Tbitmap; overload;
 function  ALBlurFitIntoAndCropAsCircleImageV2(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALBlurFitIntoAndCropAsCircleImageV2(const aStream: TCustomMemoryStream; const W, H: single; aBlurRadius: single; const aBlurW, aBlurH: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALBlurFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALBlurFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; aBlurRadius: single; const aBlurW, aBlurH: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALBlurFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALBlurFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; aBlurRadius: single; const aBlurW, aBlurH: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 
 //resize the src image to make that one side fit w or h keeping the other side equal or bigger than w or h and then crop the src image as rect
 function  ALFitIntoAndCropImageV1(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF): Tbitmap; overload;
@@ -118,9 +124,9 @@ function  ALFitIntoAndCropImageV1(const aStream: TCustomMemoryStream; const W, H
 function  ALFitIntoAndCropImageV2(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALFitIntoAndCropImageV2(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALFitIntoAndCropImageV2(const aStream: TCustomMemoryStream; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALBlurFitIntoAndCropImageV1(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeAndBlurImageGetDestSizeFunct; const aCropCenter: TPointF): Tbitmap; overload;
 function  ALBlurFitIntoAndCropImageV1(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aRadius: single): Tbitmap; overload;
@@ -128,23 +134,23 @@ function  ALBlurFitIntoAndCropImageV1(const aStream: TCustomMemoryStream; const 
 function  ALBlurFitIntoAndCropImageV2(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeAndBlurImageGetDestSizeFunct; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALBlurFitIntoAndCropImageV2(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aRadius: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALBlurFitIntoAndCropImageV2(const aStream: TCustomMemoryStream; const W, H: single; aRadius: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeAndBlurImageGetDestSizeFunct; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aRadius: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; aRadius: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeAndBlurImageGetDestSizeFunct; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aRadius: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; aRadius: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALLoadFitIntoAndCropResourceImageV1(const aResName: String; const W, H: single; const aCropCenter: TPointF): Tbitmap; overload;
 function  ALLoadFitIntoAndCropResourceImageV1(const aResName: String; const W, H: single): Tbitmap; overload;
 function  ALLoadFitIntoAndCropResourceImageV2(const aResName: String; const W, H: single; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALLoadFitIntoAndCropResourceImageV2(const aResName: String; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadFitIntoAndCropResourceImageV3(const aResName: String; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadFitIntoAndCropResourceImageV3(const aResName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadFitIntoAndCropResourceImageV3(const aResName: String; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadFitIntoAndCropResourceImageV3(const aResName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALLoadFitIntoAndCropFileImageV1(const aFileName: String; const W, H: single; const aCropCenter: TPointF): Tbitmap; overload;
 function  ALLoadFitIntoAndCropFileImageV1(const aFileName: String; const W, H: single): Tbitmap; overload;
 function  ALLoadFitIntoAndCropFileImageV2(const aFileName: String; const W, H: single; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALLoadFitIntoAndCropFileImageV2(const aFileName: String; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadFitIntoAndCropFileImageV3(const aFileName: String; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadFitIntoAndCropFileImageV3(const aFileName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadFitIntoAndCropFileImageV3(const aFileName: String; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadFitIntoAndCropFileImageV3(const aFileName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 
 //If any dimension of the image is greater than W or H then the image is scaled down to best fit W and H else the image is cropped with same ratio between W and H
 function  ALPlaceIntoAndCropImageV1(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF): Tbitmap; overload;
@@ -153,63 +159,63 @@ function  ALPlaceIntoAndCropImageV1(const aStream: TCustomMemoryStream; W, H: si
 function  ALPlaceIntoAndCropImageV2(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALPlaceIntoAndCropImageV2(const aStream: TCustomMemoryStream; W, H: single; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALPlaceIntoAndCropImageV2(const aStream: TCustomMemoryStream; W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALLoadPlaceIntoAndCropResourceImageV1(const aResName: String; W, H: single; const aCropCenter: TPointF): Tbitmap; overload;
 function  ALLoadPlaceIntoAndCropResourceImageV1(const aResName: String; W, H: single): Tbitmap; overload;
 function  ALLoadPlaceIntoAndCropResourceImageV2(const aResName: String; W, H: single; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALLoadPlaceIntoAndCropResourceImageV2(const aResName: String; W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadPlaceIntoAndCropResourceImageV3(const aResName: String; W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadPlaceIntoAndCropResourceImageV3(const aResName: String; W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadPlaceIntoAndCropResourceImageV3(const aResName: String; W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadPlaceIntoAndCropResourceImageV3(const aResName: String; W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALLoadPlaceIntoAndCropFileImageV1(const aFileName: String; W, H: single; const aCropCenter: TPointF): Tbitmap; overload;
 function  ALLoadPlaceIntoAndCropFileImageV1(const aFileName: String; W, H: single): Tbitmap; overload;
 function  ALLoadPlaceIntoAndCropFileImageV2(const aFileName: String; W, H: single; const aCropCenter: TPointF): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALLoadPlaceIntoAndCropFileImageV2(const aFileName: String; W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadPlaceIntoAndCropFileImageV3(const aFileName: String; W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALLoadPlaceIntoAndCropFileImageV3(const aFileName: String; W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadPlaceIntoAndCropFileImageV3(const aFileName: String; W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALLoadPlaceIntoAndCropFileImageV3(const aFileName: String; W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 
 //resize the src image to make that one side fit w or h keeping the other side equal or lower than w or h
 function  ALFitIntoImageV1(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct): Tbitmap; overload;
 function  ALFitIntoImageV1(const aStream: TCustomMemoryStream; const W, H: single): Tbitmap; overload;
 function  ALFitIntoImageV2(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALFitIntoImageV2(const aStream: TCustomMemoryStream; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALFitIntoImageV3(const aStream: TCustomMemoryStream; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALFitIntoImageV3(const aStream: TCustomMemoryStream; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALLoadFitIntoResourceImageV1(const aResName: String; const W, H: single): Tbitmap;
 function  ALLoadFitIntoResourceImageV2(const aResName: String; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF};
-function  ALLoadFitIntoResourceImageV3(const aResName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+function  ALLoadFitIntoResourceImageV3(const aResName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 //-----
 function  ALLoadFitIntoFileImageV1(const aFileName: String; const W, H: single): Tbitmap;
 function  ALLoadFitIntoFileImageV2(const aFileName: String; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF};
-function  ALLoadFitIntoFileImageV3(const aFileName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+function  ALLoadFitIntoFileImageV3(const aFileName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 //resize the src image to make that width = w and height = h
 function  ALStretchImageV1(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct): Tbitmap; overload;
 function  ALStretchImageV1(const aStream: TCustomMemoryStream; const W, H: single): Tbitmap; overload;
 function  ALStretchImageV2(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
 function  ALStretchImageV2(const aStream: TCustomMemoryStream; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALStretchImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
-function  ALStretchImageV3(const aStream: TCustomMemoryStream; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALStretchImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
+function  ALStretchImageV3(const aStream: TCustomMemoryStream; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF}; overload;
 //-----
 function  ALLoadStretchResourceImageV1(const aResName: String; const W, H: single): Tbitmap;
 function  ALLoadStretchResourceImageV2(const aResName: String; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF};
-function  ALLoadStretchResourceImageV3(const aResName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+function  ALLoadStretchResourceImageV3(const aResName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 //-----
 function  ALLoadStretchFileImageV1(const aFileName: String; const W, H: single): Tbitmap;
 function  ALLoadStretchFileImageV2(const aFileName: String; const W, H: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF};
-function  ALLoadStretchFileImageV3(const aFileName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+function  ALLoadStretchFileImageV3(const aFileName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 //-----
 function  ALLoadNormalizeOrientationImageV1(const aStream: TCustomMemoryStream; const aExifOrientationInfo: TalExifOrientationInfo): Tbitmap;
 function  ALLoadNormalizeOrientationImageV2(const aStream: TCustomMemoryStream; const aExifOrientationInfo: TalExifOrientationInfo): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF};
-function  ALLoadNormalizeOrientationImageV3(const aStream: TCustomMemoryStream; const aExifOrientationInfo: TalExifOrientationInfo{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+function  ALLoadNormalizeOrientationImageV3(const aStream: TCustomMemoryStream; const aExifOrientationInfo: TalExifOrientationInfo): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 //-----
 function  ALLoadNormalizeOrientationFileImageV1(const aFileName: String): Tbitmap;
 function  ALLoadNormalizeOrientationFileImageV2(const aFileName: String): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF};
-function  ALLoadNormalizeOrientationFileImageV3(const aFileName: String{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+function  ALLoadNormalizeOrientationFileImageV3(const aFileName: String): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$IF defined(IOS)}
 type
@@ -228,8 +234,7 @@ procedure ALGradientEvaluateCallback(info: Pointer; inData: PCGFloat; outData: P
 
 implementation
 
-uses system.sysutils,
-     system.math,
+uses system.math,
      System.UIConsts,
      FMX.types,
      {$IF defined(ANDROID)}
@@ -237,7 +242,6 @@ uses system.sysutils,
      Androidapi.JNIBridge,
      Androidapi.JNI.JavaTypes,
      Androidapi.Helpers,
-     Androidapi.JNI.OpenGL,
      Androidapi.Gles2,
      Androidapi.JNI.Media,
      FMX.Context.GLES,
@@ -262,102 +266,85 @@ uses system.sysutils,
      ALFmxTypes3D,
      alFmxCommon,
      {$ENDIF}
+     {$IFDEF _USE_TEXTURE}
+     FMX.Canvas.GPU,
+     {$ENDIF}
      ALCommon;
 
 {********************}
 {$IF defined(ANDROID)}
-function ALJBitmaptoTexture(const aBitmap: Jbitmap; const aVolatileTexture: boolean = true): TTexture;
-var aBitmapSurface: TBitmapSurface;
-    Tex: GLuint;
+function ALJBitmaptoTexture(const aBitmap: Jbitmap): TTexture;
 begin
-  if not aVolatileTexture then begin
-    aBitmapSurface := TBitmapSurface.Create;
-    try
-      if JBitmapToSurface(aBitmap, aBitmapSurface) then result := ALBitmapSurfacetoTexture(aBitmapSurface, aVolatileTexture)
-      else result := nil;
-    finally
-      ALFreeAndNil(abitmapSurface);
-    end;
-  end
-  else begin
-
-    {$IF CompilerVersion > 32} // tokyo
-      {$MESSAGE WARN 'Check if the full flow of FMX.Types3D.TTexture.Assign is still the same as below and adjust the IFDEF'}
-    {$ENDIF}
-    result := TALTexture.Create(aVolatileTexture);
-    try
-      result.Style := [TTextureStyle.Dynamic, TTextureStyle.Volatile];
-      result.SetSize(aBitmap.getWidth, aBitmap.getHeight);
-      if not (result.IsEmpty) then begin
-        if result.PixelFormat = TPixelFormat.None then result.PixelFormat := TCustomAndroidContext.PixelFormat;
-        {$IF CompilerVersion <= 31} // berlin
-        TCustomAndroidContext.SharedContext; // >> because stupidly CreateSharedContext is protected :(
-        if TCustomAndroidContext.IsContextAvailable then
-        {$ELSE} // Tokyo
-        if TCustomAndroidContext.Valid then
-        {$ENDIF}
-        begin
-          glActiveTexture(GL_TEXTURE0);
-          glGenTextures(1, @Tex);
-          glBindTexture(GL_TEXTURE_2D, Tex);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-          case result.MagFilter of
-            TTextureFilter.Nearest: glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            TTextureFilter.Linear: glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-          end;
-          if TTextureStyle.MipMaps in result.Style then
-          begin
-            case result.MinFilter of
-              TTextureFilter.Nearest: glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-              TTextureFilter.Linear: glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-            end;
-          end
-          else
-          begin
-            case result.MinFilter of
-              TTextureFilter.Nearest: glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-              TTextureFilter.Linear: glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            end;
-          end;
-          TJGLUtils.JavaClass.texImage2D(GL_TEXTURE_2D, // target: Integer;
-                                         0, // level: Integer;
-                                         aBitmap, // bitmap: JBitmap;
-                                         0); // border: Integer  => glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, Texture.Width, Texture.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nil);
-          glBindTexture(GL_TEXTURE_2D, 0);
-          ITextureAccess(result).Handle := Tex;
-          if (TCustomAndroidContext.GLHasAnyErrors()) then
-            RaiseContextExceptionFmt(@SCannotCreateTexture, ['TALTexture']);
-        end;
-      end;
-    except
-      ALFreeAndNil(result);
-      raise;
-    end;
-
-    {$IFDEF DEBUG}
-    if result.PixelFormat <> TPixelFormat.None then AtomicIncrement(TotalMemoryUsedByTextures, result.Width * result.Height * result.BytesPerPixel);
-    if TThread.GetTickCount - AtomicCmpExchange(LastTotalMemoryUsedByTexturesLog, 0, 0) > 1000 then begin // every 1 sec
-      AtomicExchange(LastTotalMemoryUsedByTexturesLog, TThread.GetTickCount); // oki maybe 2 or 3 log can be show simultaneously. i will not died for this !
-      ALLog('TALTexture', 'TotalMemoryUsedByTextures: ' + ALFormatFloatU('0.##', AtomicCmpExchange(TotalMemoryUsedByTextures, 0, 0) / 1000000, ALDefaultFormatSettingsU) +' MB', TalLogType.verbose);
-    end;
-    {$ENDIF}
-
+  result := TALTexture.Create;
+  try
+    TALTexture(result).Assign(aBitmap);
+  except
+    ALFreeAndNil(result);
+    raise;
   end;
 end;
 {$ENDIF}
 
 {************************************}
 {$IF defined(ANDROID) or defined(IOS)}
-function ALBitmapSurfacetoTexture(const aBitmapSurface: TbitmapSurface; const aVolatileTexture: boolean = true): TTexture;
+function ALBitmapSurfacetoTexture(const aBitmapSurface: TbitmapSurface): TTexture;
 begin
-  result := TALTexture.Create(aVolatileTexture);
+  result := TALTexture.Create;
   try
     result.Assign(aBitmapSurface);
   except
     ALFreeAndNil(result);
     raise;
   end;
+end;
+{$ENDIF}
+
+{*******************}
+{$IFDEF _USE_TEXTURE}
+function ALTransformBitmaptoTexture(var aBitmap: Tbitmap): TTexture;
+var aBitmapSurface: TbitmapSurface;
+    aPaintingTexture: TTexture;
+begin
+
+  //If TCustomCanvasGpu then simply move the textureID to the result
+  if aBitmap.CanvasClass.InheritsFrom(TCustomCanvasGpu) then begin
+
+    //TBitmap.image = TBitmapImage
+    //TBitmap.image.handle = TBitmapCtx (but casted as THandle)
+    aPaintingTexture := TBitmapCtx(aBitmap.Handle).PaintingTexture;
+    Result := TalTexture.Create;
+    try
+
+      //assign aPaintingTexture to Result
+      Result.assign(aPaintingTexture);
+
+      //set the handle of aTmpTexture to 0 to avoid the
+      //textureID to be deleted from OpenGL when we will free aBitmap
+      ITextureAccess(aPaintingTexture).Handle := 0;
+
+    except
+      ALFreeAndNil(Result);
+      raise;
+    end;
+
+  end
+
+  //else use a aBitmapSurface to transfert the bitmap to the texture
+  else begin
+
+    aBitmapSurface := TbitmapSurface.create;
+    try
+      aBitmapSurface.Assign(aBitmap);
+      result := ALBitmapSurfacetoTexture(aBitmapSurface);
+    finally
+      alfreeAndNil(aBitmapSurface);
+    end;
+
+  end;
+
+  //free the aBitmap as we extract the texture from it
+  alFreeAndNil(aBitmap);
+
 end;
 {$ENDIF}
 
@@ -642,8 +629,8 @@ begin
   result := ALFitIntoAndCropAsMaskImageV2(aStream, aMask, TpointF.Create(-50,-50));
 end;
 
-{*********************************************************************************************************************************************************************************************************************************************************************************************************************************}
-function ALFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{************************************************************************************************************************************************************************************************************************************************************}
+function ALFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -653,7 +640,7 @@ begin
   aTmpBitmap := ALFitIntoAndCropAsMaskImageV2(aStream, aMask, aCropCenter);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -751,7 +738,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.assign(aBitmapSurface);
                   except
@@ -787,10 +774,10 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{*****************************************************************************************************************************************************************************************************************************************************************************************************}
-function ALFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{********************************************************************************************************************************************************************************************************************************}
+function ALFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 begin
-  result := ALFitIntoAndCropAsMaskImageV3(aStream, aMask, TpointF.Create(-50,-50){$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+  result := ALFitIntoAndCropAsMaskImageV3(aStream, aMask, TpointF.Create(-50,-50));
 end;
 
 {*******************************************************************************************************************************************************************************************}
@@ -1023,8 +1010,8 @@ begin
   result := ALBlurFitIntoAndCropAsMaskImageV2(aStream, aMask, TpointF.Create(-50,-50), aBlurRadius, aBlurW, aBlurH);
 end;
 
-{****************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************}
-function ALBlurFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*******************************************************************************************************************************************************************************************************************************************************************************************************************}
+function ALBlurFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -1034,7 +1021,7 @@ begin
   aTmpBitmap := ALBlurFitIntoAndCropAsMaskImageV2(aStream, aMask, aCropCenter, aBlurRadius, aBlurW, aBlurH);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -1127,7 +1114,7 @@ begin
                 CGContextRelease(aContext);
               end;
 
-              result := TALTexture.Create(aVolatileTexture);
+              result := TALTexture.Create;
               try
                 result.assign(aBitmapSurface);
               except
@@ -1159,10 +1146,10 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{************************************************************************************************************************************************************************************************************************************************************************************************************************************************************}
-function ALBlurFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; aBlurRadius: single; const aBlurW, aBlurH: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{***************************************************************************************************************************************************************************************************************************************************************************************}
+function ALBlurFitIntoAndCropAsMaskImageV3(const aStream: TCustomMemoryStream; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; aBlurRadius: single; const aBlurW, aBlurH: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 begin
-  result := ALBlurFitIntoAndCropAsMaskImageV3(aStream, aMask, TpointF.Create(-50,-50), aBlurRadius, aBlurW, aBlurH{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+  result := ALBlurFitIntoAndCropAsMaskImageV3(aStream, aMask, TpointF.Create(-50,-50), aBlurRadius, aBlurW, aBlurH);
 end;
 
 {*************************************************************************************************************************************}
@@ -1213,25 +1200,25 @@ begin
   end;
 end;
 
-{**********************************************************************************************************************************************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoAndCropResourceAsMaskImageV3(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*************************************************************************************************************************************************************************************************************************************************************}
+function  ALLoadFitIntoAndCropResourceAsMaskImageV3(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALFitIntoAndCropAsMaskImageV3(aStream, aMask, aCropCenter{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoAndCropAsMaskImageV3(aStream, aMask, aCropCenter);
   finally
     ALfreeandNil(aStream);
   end;
 end;
 
-{******************************************************************************************************************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoAndCropResourceAsMaskImageV3(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*********************************************************************************************************************************************************************************************************************************}
+function  ALLoadFitIntoAndCropResourceAsMaskImageV3(const aResName: String; const aMask: {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALFitIntoAndCropAsMaskImageV3(aStream, aMask{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoAndCropAsMaskImageV3(aStream, aMask);
   finally
     ALfreeandNil(aStream);
   end;
@@ -1479,8 +1466,8 @@ begin
   result := ALFitIntoAndCropAsRoundRectImageV2(aStream, w, h, XRadius, YRadius, TpointF.Create(-50,-50));
 end;
 
-{****************************************************************************************************************************************************************************************************************************************************************************************}
-function ALFitIntoAndCropAsRoundRectImageV3(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*******************************************************************************************************************************************************************************************************************}
+function ALFitIntoAndCropAsRoundRectImageV3(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -1490,7 +1477,7 @@ begin
   aTmpBitmap := ALFitIntoAndCropAsRoundRectImageV2(aStream, W, H, XRadius, YRadius, aCropCenter);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -1646,7 +1633,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.assign(aBitmapSurface);
                   except
@@ -1682,10 +1669,10 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{************************************************************************************************************************************************************************************************************************************************************}
-function ALFitIntoAndCropAsRoundRectImageV3(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{***************************************************************************************************************************************************************************************}
+function ALFitIntoAndCropAsRoundRectImageV3(const aStream: TCustomMemoryStream; const W, H: single; const XRadius, YRadius: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 begin
-  result := ALFitIntoAndCropAsRoundRectImageV3(aStream, w, h, XRadius, YRadius, TpointF.Create(-50,-50){$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+  result := ALFitIntoAndCropAsRoundRectImageV3(aStream, w, h, XRadius, YRadius, TpointF.Create(-50,-50));
 end;
 
 {************************************************************************************************************************************}
@@ -1904,8 +1891,8 @@ begin
   result := ALFitIntoAndCropAsCircleImageV2(aStream, w, h, TpointF.Create(-50,-50));
 end;
 
-{*****************************************************************************************************************************************************************************************************************************************************}
-function ALFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{********************************************************************************************************************************************************************************}
+function ALFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -1915,7 +1902,7 @@ begin
   aTmpBitmap := ALFitIntoAndCropAsCircleImageV2(aStream, W, H, aCropCenter);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -2014,7 +2001,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.assign(aBitmapSurface);
                   except
@@ -2050,10 +2037,10 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{*************************************************************************************************************************************************************************************************************************}
-function ALFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{****************************************************************************************************************************************************}
+function ALFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 begin
-  result := ALFitIntoAndCropAsCircleImageV3(aStream, w, h, TpointF.Create(-50,-50){$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+  result := ALFitIntoAndCropAsCircleImageV3(aStream, w, h, TpointF.Create(-50,-50));
 end;
 
 {*************************************************************************************************************************************}
@@ -2104,25 +2091,25 @@ begin
   end;
 end;
 
-{******************************************************************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoAndCropResourceAsCircleImageV3(const aResName: String; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*********************************************************************************************************************************************************************************}
+function  ALLoadFitIntoAndCropResourceAsCircleImageV3(const aResName: String; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALFitIntoAndCropAsCircleImageV3(aStream, W, H, aCropCenter{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoAndCropAsCircleImageV3(aStream, W, H, aCropCenter);
   finally
     ALfreeandNil(aStream);
   end;
 end;
 
-{**************************************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoAndCropResourceAsCircleImageV3(const aResName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*****************************************************************************************************************************************************}
+function  ALLoadFitIntoAndCropResourceAsCircleImageV3(const aResName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALFitIntoAndCropAsCircleImageV3(aStream, W, H{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoAndCropAsCircleImageV3(aStream, W, H);
   finally
     ALfreeandNil(aStream);
   end;
@@ -2161,13 +2148,13 @@ begin
 
 end;
 
-{**************************************************************************************************************************************************************}
+{***************************************************************************************************************************************************************}
 function ALBlurFitIntoAndCropAsCircleImageV1(const aStream: TCustomMemoryStream; const W, H: single; aBlurRadius: single; const aBlurW, aBlurH: single): Tbitmap;
 begin
   result := ALBlurFitIntoAndCropAsCircleImageV1(aStream, w, h, TpointF.Create(-50,-50), aBlurRadius, aBlurW, aBlurH);
 end;
 
-{**********************************************************************************************************************************************************************************************************************************************************************}
+{***********************************************************************************************************************************************************************************************************************************************************************}
 function ALBlurFitIntoAndCropAsCircleImageV2(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
@@ -2324,14 +2311,14 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{******************************************************************************************************************************************************************************************************************************************}
+{*******************************************************************************************************************************************************************************************************************************************}
 function ALBlurFitIntoAndCropAsCircleImageV2(const aStream: TCustomMemoryStream; const W, H: single; aBlurRadius: single; const aBlurW, aBlurH: single): {$IF defined(ANDROID)}Jbitmap{$ELSEIF defined(IOS)}CGImageRef{$ELSE}Tbitmap{$ENDIF};
 begin
   result := ALBlurFitIntoAndCropAsCircleImageV2(aStream, w, h, TpointF.Create(-50,-50), aBlurRadius, aBlurW, aBlurH);
 end;
 
-{***********************************************************************************************************************************************************************************************************************************************************************************************************}
-function ALBlurFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{***************************************************************************************************************************************************************************************************************************************}
+function ALBlurFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aBlurRadius: single; const aBlurW, aBlurH: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -2341,7 +2328,7 @@ begin
   aTmpBitmap := ALBlurFitIntoAndCropAsCircleImageV2(aStream, W, H, aCropCenter, aBlurRadius, aBlurW, aBlurH);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -2417,7 +2404,7 @@ begin
                 CGContextRelease(aContext);
               end;
 
-              result := TALTexture.Create(aVolatileTexture);
+              result := TALTexture.Create;
               try
                 result.Assign(aBitmapSurface);
               except
@@ -2450,10 +2437,10 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{*******************************************************************************************************************************************************************************************************************************************************************************}
-function ALBlurFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; aBlurRadius: single; const aBlurW, aBlurH: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{***********************************************************************************************************************************************************************************************************}
+function ALBlurFitIntoAndCropAsCircleImageV3(const aStream: TCustomMemoryStream; const W, H: single; aBlurRadius: single; const aBlurW, aBlurH: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 begin
-  result := ALBlurFitIntoAndCropAsCircleImageV3(aStream, w, h, TpointF.Create(-50,-50), aBlurRadius, aBlurW, aBlurH{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+  result := ALBlurFitIntoAndCropAsCircleImageV3(aStream, w, h, TpointF.Create(-50,-50), aBlurRadius, aBlurW, aBlurH);
 end;
 
 {*****************************************************************************************************************************************************************}
@@ -2568,7 +2555,7 @@ begin
       result := TJBitmap.JavaClass.createBitmap(aBitmap{src}, aSrcRect.Left{X}, aSrcRect.top{Y}, aSrcRect.width{Width}, aSrcRect.height{height}, aMatrix{m}, True{filter});
       aMatrix := nil;
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -2708,7 +2695,7 @@ begin
       result := TJBitmap.JavaClass.createBitmap(aBitmap{src}, aSrcRect.Left{X}, aSrcRect.top{Y}, aSrcRect.width{Width}, aSrcRect.height{height}, aMatrix{m}, True{filter});
       aMatrix := nil;
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -2827,8 +2814,8 @@ begin
   result := ALFitIntoAndCropImageV2(aStream, w, h, TpointF.Create(-50,-50));
 end;
 
-{**********************************************************************************************************************************************************************************************************************************************************************************}
-function ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*************************************************************************************************************************************************************************************************************}
+function ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -2839,7 +2826,7 @@ begin
   aTmpBitmap := ALFitIntoAndCropImageV2(aStream, aGetDestSizeFunct, aCropCenter);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -2929,7 +2916,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.Assign(aBitmapSurface);
                   except
@@ -2966,8 +2953,8 @@ end;
 {$ENDREGION}
 
 
-{*********************************************************************************************************************************************************************************************************************************************}
-function ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{************************************************************************************************************************************************************************}
+function ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -2978,7 +2965,7 @@ begin
   aTmpBitmap := ALFitIntoAndCropImageV2(aStream, W, H, aCropCenter);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -3066,7 +3053,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.Assign(aBitmapSurface);
                   except
@@ -3102,10 +3089,10 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{*****************************************************************************************************************************************************************************************************************}
-function ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{********************************************************************************************************************************************}
+function ALFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 begin
-  result := ALFitIntoAndCropImageV3(aStream, w, h, TpointF.Create(-50,-50){$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+  result := ALFitIntoAndCropImageV3(aStream, w, h, TpointF.Create(-50,-50));
 end;
 
 {****************************************************************************************************************************************************************************}
@@ -3246,7 +3233,7 @@ begin
       aRS := nil;
 
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -3439,7 +3426,7 @@ begin
       aRS := nil;
 
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -3586,8 +3573,8 @@ begin
   result := ALBlurFitIntoAndCropImageV2(aStream, w, h, TpointF.Create(-50,-50), aRadius);
 end;
 
-{*********************************************************************************************************************************************************************************************************************************************************************************************}
-function ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeAndBlurImageGetDestSizeFunct; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{************************************************************************************************************************************************************************************************************************}
+function ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeAndBlurImageGetDestSizeFunct; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -3598,7 +3585,7 @@ begin
   aTmpBitmap := ALBlurFitIntoAndCropImageV2(aStream, aGetDestSizeFunct, aCropCenter);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -3674,7 +3661,7 @@ begin
                 CGContextRelease(aContext);
               end;
 
-              result := TALTexture.Create(aVolatileTexture);
+              result := TALTexture.Create;
               try
                 result.Assign(aBitmapSurface);
               except
@@ -3708,8 +3695,8 @@ end;
 {$ENDREGION}
 
 
-{******************************************************************************************************************************************************************************************************************************************************************}
-function ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aRadius: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*********************************************************************************************************************************************************************************************}
+function ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; const aCropCenter: TPointF; aRadius: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -3720,7 +3707,7 @@ begin
   aTmpBitmap := ALBlurFitIntoAndCropImageV2(aStream, W, H, aCropCenter, aRadius);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -3796,7 +3783,7 @@ begin
                 CGContextRelease(aContext);
               end;
 
-              result := TALTexture.Create(aVolatileTexture);
+              result := TALTexture.Create;
               try
                 result.Assign(aBitmapSurface);
               except
@@ -3829,10 +3816,10 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{**************************************************************************************************************************************************************************************************************************************}
-function ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; aRadius: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*****************************************************************************************************************************************************************}
+function ALBlurFitIntoAndCropImageV3(const aStream: TCustomMemoryStream; const W, H: single; aRadius: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 begin
-  result := ALBlurFitIntoAndCropImageV3(aStream, w, h, TpointF.Create(-50,-50), aRadius{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+  result := ALBlurFitIntoAndCropImageV3(aStream, w, h, TpointF.Create(-50,-50), aRadius);
 end;
 
 {****************************************************************************************************************************}
@@ -3883,25 +3870,25 @@ begin
   end;
 end;
 
-{**********************************************************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoAndCropResourceImageV3(const aResName: String; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*************************************************************************************************************************************************************************}
+function  ALLoadFitIntoAndCropResourceImageV3(const aResName: String; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALFitIntoAndCropImageV3(aStream, W, H, aCropCenter{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoAndCropImageV3(aStream, W, H, aCropCenter);
   finally
     ALfreeandNil(aStream);
   end;
 end;
 
-{******************************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoAndCropResourceImageV3(const aResName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*********************************************************************************************************************************************}
+function  ALLoadFitIntoAndCropResourceImageV3(const aResName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALFitIntoAndCropImageV3(aStream, W, H{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoAndCropImageV3(aStream, W, H);
   finally
     ALfreeandNil(aStream);
   end;
@@ -3959,27 +3946,27 @@ begin
   end;
 end;
 
-{*******************************************************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoAndCropFileImageV3(const aFileName: String; const W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{**********************************************************************************************************************************************************************}
+function  ALLoadFitIntoAndCropFileImageV3(const aFileName: String; const W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TMemoryStream;
 begin
   aStream := TMemoryStream.Create;
   try
     aStream.LoadFromFile(aFileName);
-    result := ALFitIntoAndCropImageV3(aStream, W, H, aCropCenter{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoAndCropImageV3(aStream, W, H, aCropCenter);
   finally
     ALfreeandNil(aStream);
   end;
 end;
 
-{***************************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoAndCropFileImageV3(const aFileName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{******************************************************************************************************************************************}
+function  ALLoadFitIntoAndCropFileImageV3(const aFileName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TMemoryStream;
 begin
   aStream := TMemoryStream.Create;
   try
     aStream.LoadFromFile(aFileName);
-    result := ALFitIntoAndCropImageV3(aStream, W, H{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoAndCropImageV3(aStream, W, H);
   finally
     ALfreeandNil(aStream);
   end;
@@ -4116,7 +4103,7 @@ begin
       result := TJBitmap.JavaClass.createBitmap(aBitmap{src}, aSrcRect.Left{X}, aSrcRect.top{Y}, aSrcRect.width{Width}, aSrcRect.height{height}, aMatrix{m}, True{filter});
       aMatrix := nil;
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -4267,7 +4254,7 @@ begin
       result := TJBitmap.JavaClass.createBitmap(aBitmap{src}, aSrcRect.Left{X}, aSrcRect.top{Y}, aSrcRect.width{Width}, aSrcRect.height{height}, aMatrix{m}, True{filter});
       aMatrix := nil;
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -4393,8 +4380,8 @@ begin
   result := ALPlaceIntoAndCropImageV2(aStream, w, h, TpointF.Create(-50,-50));
 end;
 
-{************************************************************************************************************************************************************************************************************************************************************************************}
-function ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{***************************************************************************************************************************************************************************************************************}
+function ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -4405,7 +4392,7 @@ begin
   aTmpBitmap := ALPlaceIntoAndCropImageV2(aStream, aGetDestSizeFunct, aCropCenter);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -4500,7 +4487,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.Assign(aBitmapSurface);
                   except
@@ -4537,8 +4524,8 @@ end;
 {$ENDREGION}
 
 
-{*****************************************************************************************************************************************************************************************************************************************}
-function ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{********************************************************************************************************************************************************************}
+function ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -4549,7 +4536,7 @@ begin
   aTmpBitmap := ALPlaceIntoAndCropImageV2(aStream, W, H, aCropCenter);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -4643,7 +4630,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.Assign(aBitmapSurface);
                   except
@@ -4679,10 +4666,10 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{*************************************************************************************************************************************************************************************************************}
-function ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{****************************************************************************************************************************************}
+function ALPlaceIntoAndCropImageV3(const aStream: TCustomMemoryStream; W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 begin
-  result := ALPlaceIntoAndCropImageV3(aStream, w, h, TpointF.Create(-50,-50){$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+  result := ALPlaceIntoAndCropImageV3(aStream, w, h, TpointF.Create(-50,-50));
 end;
 
 {************************************************************************************************************************}
@@ -4733,25 +4720,25 @@ begin
   end;
 end;
 
-{******************************************************************************************************************************************************************************************************************************************}
-function  ALLoadPlaceIntoAndCropResourceImageV3(const aResName: String; W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*********************************************************************************************************************************************************************}
+function  ALLoadPlaceIntoAndCropResourceImageV3(const aResName: String; W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALPlaceIntoAndCropImageV3(aStream, W, H, aCropCenter{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALPlaceIntoAndCropImageV3(aStream, W, H, aCropCenter);
   finally
     ALfreeandNil(aStream);
   end;
 end;
 
-{**************************************************************************************************************************************************************************************************************}
-function  ALLoadPlaceIntoAndCropResourceImageV3(const aResName: String; W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*****************************************************************************************************************************************}
+function  ALLoadPlaceIntoAndCropResourceImageV3(const aResName: String; W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALPlaceIntoAndCropImageV3(aStream, W, H{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALPlaceIntoAndCropImageV3(aStream, W, H);
   finally
     ALfreeandNil(aStream);
   end;
@@ -4809,27 +4796,27 @@ begin
   end;
 end;
 
-{***************************************************************************************************************************************************************************************************************************************}
-function  ALLoadPlaceIntoAndCropFileImageV3(const aFileName: String; W, H: single; const aCropCenter: TPointF{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{******************************************************************************************************************************************************************}
+function  ALLoadPlaceIntoAndCropFileImageV3(const aFileName: String; W, H: single; const aCropCenter: TPointF): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TMemoryStream;
 begin
   aStream := TMemoryStream.Create;
   try
     aStream.LoadFromFile(aFileName);
-    result := ALPlaceIntoAndCropImageV3(aStream, W, H, aCropCenter{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALPlaceIntoAndCropImageV3(aStream, W, H, aCropCenter);
   finally
     ALfreeandNil(aStream);
   end;
 end;
 
-{***********************************************************************************************************************************************************************************************************}
-function  ALLoadPlaceIntoAndCropFileImageV3(const aFileName: String; W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{**************************************************************************************************************************************}
+function  ALLoadPlaceIntoAndCropFileImageV3(const aFileName: String; W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TMemoryStream;
 begin
   aStream := TMemoryStream.Create;
   try
     aStream.LoadFromFile(aFileName);
-    result := ALPlaceIntoAndCropImageV3(aStream, W, H{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALPlaceIntoAndCropImageV3(aStream, W, H);
   finally
     ALfreeandNil(aStream);
   end;
@@ -4949,7 +4936,7 @@ begin
       result := TJBitmap.JavaClass.createBitmap(aBitmap{src}, round(aSrcRect.Left){X}, round(aSrcRect.top){Y}, round(aSrcRect.width){Width}, round(aSrcRect.height){height}, aMatrix{m}, True{filter});
       aMatrix := nil;
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -5090,7 +5077,7 @@ begin
       result := TJBitmap.JavaClass.createBitmap(aBitmap{src}, round(aSrcRect.Left){X}, round(aSrcRect.top){Y}, round(aSrcRect.width){Width}, round(aSrcRect.height){height}, aMatrix{m}, True{filter});
       aMatrix := nil;
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -5203,8 +5190,8 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{***********************************************************************************************************************************************************************************************************************************************}
-function ALFitIntoImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{**************************************************************************************************************************************************************************}
+function ALFitIntoImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -5215,7 +5202,7 @@ begin
   aTmpBitmap := ALFitIntoImageV2(aStream, aGetDestSizeFunct);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -5305,7 +5292,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.Assign(aBitmapSurface);
                   except
@@ -5342,8 +5329,8 @@ end;
 {$ENDREGION}
 
 
-{**********************************************************************************************************************************************************************************************************}
-function ALFitIntoImageV3(const aStream: TCustomMemoryStream; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*************************************************************************************************************************************}
+function ALFitIntoImageV3(const aStream: TCustomMemoryStream; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -5354,7 +5341,7 @@ begin
   aTmpBitmap := ALFitIntoImageV2(aStream, W, H);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -5442,7 +5429,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.Assign(aBitmapSurface);
                   except
@@ -5502,13 +5489,13 @@ begin
   end;
 end;
 
-{***********************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoResourceImageV3(const aResName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{**************************************************************************************************************************************}
+function  ALLoadFitIntoResourceImageV3(const aResName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALFitIntoImageV3(aStream, W, H{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoImageV3(aStream, W, H);
   finally
     ALfreeandNil(aStream);
   end;
@@ -5540,14 +5527,14 @@ begin
   end;
 end;
 
-{********************************************************************************************************************************************************************************************************}
-function  ALLoadFitIntoFileImageV3(const aFileName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{***********************************************************************************************************************************}
+function  ALLoadFitIntoFileImageV3(const aFileName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TMemoryStream;
 begin
   aStream := TMemoryStream.Create;
   try
     aStream.LoadFromFile(aFileName);
-    result := ALFitIntoImageV3(aStream, W, H{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALFitIntoImageV3(aStream, W, H);
   finally
     ALfreeandNil(aStream);
   end;
@@ -5659,7 +5646,7 @@ begin
       result := TJBitmap.JavaClass.createBitmap(aBitmap{src}, round(aSrcRect.Left){X}, round(aSrcRect.top){Y}, round(aSrcRect.width){Width}, round(aSrcRect.height){height}, aMatrix{m}, True{filter});
       aMatrix := nil;
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -5796,7 +5783,7 @@ begin
       result := TJBitmap.JavaClass.createBitmap(aBitmap{src}, round(aSrcRect.Left){X}, round(aSrcRect.top){Y}, round(aSrcRect.width){Width}, round(aSrcRect.height){height}, aMatrix{m}, True{filter});
       aMatrix := nil;
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -5907,8 +5894,8 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{***********************************************************************************************************************************************************************************************************************************************}
-function ALStretchImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{**************************************************************************************************************************************************************************}
+function ALStretchImageV3(const aStream: TCustomMemoryStream; const aGetDestSizeFunct: TALResizeImageGetDestSizeFunct): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -5919,7 +5906,7 @@ begin
   aTmpBitmap := ALStretchImageV2(aStream, aGetDestSizeFunct);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -6007,7 +5994,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.Assign(aBitmapSurface);
                   except
@@ -6044,8 +6031,8 @@ end;
 {$ENDREGION}
 
 
-{**********************************************************************************************************************************************************************************************************}
-function ALStretchImageV3(const aStream: TCustomMemoryStream; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{*************************************************************************************************************************************}
+function ALStretchImageV3(const aStream: TCustomMemoryStream; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -6056,7 +6043,7 @@ begin
   aTmpBitmap := ALStretchImageV2(aStream, W, H);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -6142,7 +6129,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.Assign(aBitmapSurface);
                   except
@@ -6202,13 +6189,13 @@ begin
   end;
 end;
 
-{***********************************************************************************************************************************************************************************************************}
-function  ALLoadStretchResourceImageV3(const aResName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{**************************************************************************************************************************************}
+function  ALLoadStretchResourceImageV3(const aResName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TResourceStream;
 begin
   aStream := TResourceStream.Create(HInstance, aResName, RT_RCDATA);
   try
-    result := ALStretchImageV3(aStream, W, H{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALStretchImageV3(aStream, W, H);
   finally
     ALfreeandNil(aStream);
   end;
@@ -6240,14 +6227,14 @@ begin
   end;
 end;
 
-{********************************************************************************************************************************************************************************************************}
-function  ALLoadStretchFileImageV3(const aFileName: String; const W, H: single{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{***********************************************************************************************************************************}
+function  ALLoadStretchFileImageV3(const aFileName: String; const W, H: single): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TMemoryStream;
 begin
   aStream := TMemoryStream.Create;
   try
     aStream.LoadFromFile(aFileName);
-    result := ALStretchImageV3(aStream, W, H{$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALStretchImageV3(aStream, W, H);
   finally
     ALfreeandNil(aStream);
   end;
@@ -6281,7 +6268,7 @@ begin
     try
       result := ALNormalizeImageOrientationV2(aBitmap, aExifOrientationInfo);
     finally
-      if not aBitmap.sameAs(result) then aBitmap.recycle;
+      if not aBitmap.equals(result) then aBitmap.recycle;
       aBitmap := nil;
     end;
   finally
@@ -6327,8 +6314,8 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
-{************************************************************************************************************************************************************************************************************************************************************}
-function  ALLoadNormalizeOrientationImageV3(const aStream: TCustomMemoryStream; const aExifOrientationInfo: TalExifOrientationInfo{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{***************************************************************************************************************************************************************************************}
+function  ALLoadNormalizeOrientationImageV3(const aStream: TCustomMemoryStream; const aExifOrientationInfo: TalExifOrientationInfo): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 
 {$REGION ' ANDROID'}
 {$IF defined(ANDROID)}
@@ -6339,7 +6326,7 @@ begin
   aTmpBitmap := ALLoadNormalizeOrientationImageV2(aStream, aExifOrientationInfo);
   if aTmpBitmap = nil then exit(nil);
   try
-    result := ALJBitmaptoTexture(aTmpBitmap, aVolatileTexture);
+    result := ALJBitmaptoTexture(aTmpBitmap);
   finally
     aTmpBitmap.recycle;
     aTmpBitmap := nil;
@@ -6502,7 +6489,7 @@ begin
                     CGContextRelease(aContext);
                   end;
 
-                  result := TALTexture.Create(aVolatileTexture);
+                  result := TALTexture.Create;
                   try
                     result.Assign(aBitmapSurface);
                   except
@@ -6564,14 +6551,14 @@ begin
   end;
 end;
 
-{*************************************************************************************************************************************************************************************************}
-function  ALLoadNormalizeOrientationFileImageV3(const aFileName: String{$IFDEF _USE_TEXTURE}; const aVolatileTexture: boolean = true{$ENDIF}): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
+{****************************************************************************************************************************}
+function  ALLoadNormalizeOrientationFileImageV3(const aFileName: String): {$IFDEF _USE_TEXTURE}TTexture{$ELSE}Tbitmap{$ENDIF};
 var aStream: TMemoryStream;
 begin
   aStream := TMemoryStream.Create;
   try
     aStream.LoadFromFile(aFileName);
-    result := ALLoadNormalizeOrientationImageV3(aStream, AlGetExifOrientationInfo(aFileName){$IFDEF _USE_TEXTURE}, aVolatileTexture{$ENDIF});
+    result := ALLoadNormalizeOrientationImageV3(aStream, AlGetExifOrientationInfo(aFileName));
   finally
     ALfreeandNil(aStream);
   end;
@@ -6903,15 +6890,43 @@ end;
 {$ENDIF}
 {$ENDREGION}
 
+{************************************************************}
+function  AlGetImageSignature(const aStream: TStream): Tbytes;
+var i: integer;
+begin
+  aStream.Position := 0;
+  SetLength(result, 12);
+  if aStream.Size < 12 then begin
+    for I := Low(result) to High(result) do
+      result[i] := $00;
+    exit;
+  end;
+  aStream.ReadBuffer(result[0], length(result));
+end;
+
+{*************************************************************}
+function  AlGetImageSignature(const aFileName: string): Tbytes;
+var aFileStream: TFileStream;
+begin
+  aFileStream := TFileStream.Create(aFileName, fmOpenRead);
+  try
+    result := AlGetImageSignature(aFileStream);
+  finally
+    aFileStream.Free;
+  end;
+end;
+
 {******************************************************}
 // https://en.wikipedia.org/wiki/List_of_file_signatures
+// https://github.com/strukturag/libheif/issues/83
+// https://nokiatech.github.io/heif/technical.html
 function  AlDetectImageExtensionU(const aStream: Tstream): String;
 var aFirstBytes: Tbytes;
 begin
-  aStream.Position := 0;
-  if aStream.Size < 8 then exit('');
-  SetLength(aFirstBytes, 8);
-  aStream.ReadBuffer(aFirstBytes[0], length(aFirstBytes));
+
+  aFirstBytes := AlGetImageSignature(aStream);
+  if length(aFirstBytes) < 12 then exit('');
+
   if (aFirstBytes[0] = $FF) and
      (aFirstBytes[1] = $D8) then result := 'jpg'  // ÿØ
   else if (aFirstBytes[0] = $89) and
@@ -6927,7 +6942,33 @@ begin
           (aFirstBytes[2] = $46) then result := 'gif' // GIF
   else if (aFirstBytes[0] = $42) and
           (aFirstBytes[1] = $4D) then result := 'bmp' // BM
+  else if (aFirstBytes[0] = $00) and
+          (aFirstBytes[1] = $00) and
+          (aFirstBytes[2] = $00) and
+          (aFirstBytes[3] = $18) and
+          (aFirstBytes[4] = $66) and
+          (aFirstBytes[5] = $74) and
+          (aFirstBytes[6] = $79) and
+          (aFirstBytes[7] = $70) and
+          (aFirstBytes[8] = $68) and
+          (aFirstBytes[9] = $65) and
+          (aFirstBytes[10] = $69) and
+          ((aFirstBytes[11] = $63{c}) or
+           (aFirstBytes[11] = $78{x})) then result := 'heic' // ftypheic or ftypheix....
+  else if (aFirstBytes[0] = $00) and
+          (aFirstBytes[1] = $00) and
+          (aFirstBytes[2] = $00) and
+          (aFirstBytes[3] = $18) and
+          (aFirstBytes[4] = $66) and
+          (aFirstBytes[5] = $74) and
+          (aFirstBytes[6] = $79) and
+          (aFirstBytes[7] = $70) and
+          (aFirstBytes[8] = $6D) and
+          (aFirstBytes[9] = $69) and
+          (aFirstBytes[10] = $66) and
+          (aFirstBytes[11] = $31) then result := 'heif' // ftypmif1....
   else result := '';
+
 end;
 
 {*****************************************************************}

@@ -68,7 +68,7 @@
 // notification.vibrate - must equal to 1 to activate the default vibration pattern (0, 1200)
 // notification.visibility - Specify the value of visibility - One of VISIBILITY_PRIVATE (the default), VISIBILITY_SECRET, or VISIBILITY_PUBLIC.
 // notification.priority - Relative priority for this notification
-// notification.sound - Set the sound to play
+// notification.sound - Set the sound to play - use "default" for the default sound
 // notification.badgecount - update the shortcut badge count with this number
 // notification.present - only for IOS 10+, it's equal to 1 then even if the app is in foreground the notification will be presented to the end user
 //
@@ -246,6 +246,7 @@ type
 
     fOnMessageReceived: TALFirebaseMessagingClientMessageReceivedEvent;
     fOnAuthorizationRefused: TNotifyEvent;
+    fOnAuthorizationGranted: TNotifyEvent;
     [weak] fFirebaseInstanceIdClient: TALFirebaseInstanceIdClient;
     fConnected: Boolean;
 
@@ -289,6 +290,7 @@ type
     procedure setBadgeCount(const aNewValue: integer; const extData: pointer = nil); virtual;
     property OnMessageReceived: TALFirebaseMessagingClientMessageReceivedEvent read fOnMessageReceived write fOnMessageReceived;
     property OnAuthorizationRefused: TNotifyEvent read fOnAuthorizationRefused write fOnAuthorizationRefused;
+    property OnAuthorizationGranted: TNotifyEvent read fOnAuthorizationGranted write fOnAuthorizationGranted;
     property connected: boolean read fConnected;
   end;
 
@@ -467,6 +469,7 @@ begin
   fconnected := False;
   fOnMessageReceived := nil;
   fOnAuthorizationRefused := nil;
+  fOnAuthorizationGranted := nil;
   fFirebaseInstanceIdClient := aFirebaseInstanceIdClient;
   fFirebaseInstanceIdClient.FirebaseMessagingClient := Self;
 
@@ -933,10 +936,6 @@ begin
     TMessageManager.DefaultManager.SendMessage(nil, aMessage);
   end;
 
-  {$IF CompilerVersion > 32} // tokyo
-    {$MESSAGE WARN 'check if this is not already implemented - look for the keyword imp_implementationWithBlock/imp_removeBlock in the source code'}
-  {$ENDIF}
-
   @aImp := imp_implementationWithBlock(withCompletionHandler);
   aImp(aOptions);
   imp_removeBlock(@aImp);
@@ -964,15 +963,12 @@ begin
   finally
     ALFreeAndNil(aJsonDoc);
   end;
+
   {$IFDEF DEBUG}
   allog('TALFirebaseMessagingClient.TUserNotificationCenterDelegate.userNotificationCenterDidReceiveNotificationResponseWithCompletionHandler', aMessage.Value.Notification +
                                                                                                                                                 ' - ThreadID: ' + alIntToStrU(TThread.Current.ThreadID) + '/' + alIntToStrU(MainThreadID), TalLogType.verbose);
   {$ENDIF}
   TMessageManager.DefaultManager.SendMessage(nil, aMessage);
-
-  {$IF CompilerVersion > 32} // tokyo
-    {$MESSAGE WARN 'check if this is not already implemented - look for the keyword imp_implementationWithBlock/imp_removeBlock in the source code'}
-  {$ENDIF}
 
   @aImp := imp_implementationWithBlock(withCompletionHandler);
   aImp();
@@ -1129,28 +1125,39 @@ end;
 procedure TALFirebaseMessagingClient.UserNotificationCenterRequestAuthorizationWithOptionsCompletionHandler(granted: Boolean; error: NSError);
 begin
 
- // If the local or remote notifications of your app or app extension interact
- // with the user in any way, you must call this method to request authorization
- // for those interactions. The first time your app ever calls the method, the
- // system prompts the user to authorize the requested options. The user may
- // respond by granting or denying authorization, and the system stores the user’s
- // response so that subsequent calls to this method do not prompt the user again.
- // The user may change the allowed interactions at any time. Use the
- // getNotificationSettingsWithCompletionHandler: method to determine what your
- // app is allowed to do.
+  // If the local or remote notifications of your app or app extension interact
+  // with the user in any way, you must call this method to request authorization
+  // for those interactions. The first time your app ever calls the method, the
+  // system prompts the user to authorize the requested options. The user may
+  // respond by granting or denying authorization, and the system stores the user’s
+  // response so that subsequent calls to this method do not prompt the user again.
+  // The user may change the allowed interactions at any time. Use the
+  // getNotificationSettingsWithCompletionHandler: method to determine what your
+  // app is allowed to do.
 
   {$IFDEF DEBUG}
   allog('TALFirebaseMessagingClient.UserNotificationCenterRequestAuthorizationWithOptionsCompletionHandler', 'granted: ' + ALBoolToStrU(granted) +
                                                                                                              ' - ThreadID: ' + alIntToStrU(TThread.Current.ThreadID) + '/' + alIntToStrU(MainThreadID), TalLogType.verbose);
   {$ENDIF}
 
- if (not granted) and assigned(fOnAuthorizationRefused) then begin
-  TThread.Synchronize(nil, // << Strangely it's seam this function is not called from the mainThread
-    procedure
-    begin
-      fOnAuthorizationRefused(self);
-    end);
- end;
+ if (not granted) then begin
+   if assigned(fOnAuthorizationRefused) then begin
+     TThread.Synchronize(nil, // << Strangely it's seam this function is not called from the mainThread
+       procedure
+       begin
+         fOnAuthorizationRefused(self);
+       end);
+    end;
+  end
+  else begin
+   if assigned(fOnAuthorizationGranted) then begin
+     TThread.Synchronize(nil, // << Strangely it's seam this function is not called from the mainThread
+       procedure
+       begin
+         fOnAuthorizationGranted(self);
+       end);
+    end;
+  end;
 
 end;
 

@@ -26,10 +26,8 @@ type
   JALFileUtil = interface;
   JALDatePickerDialogListener = interface;
   JALDatePickerDialog = interface;
-  JALSoftInputListener = interface;
   JALKeyPreImeListener = interface;
   JALEditText = interface;
-  JALControlHostLayout = interface;
   JLog = interface;
   JStatFs = interface;
   JLocalBroadcastManager = interface;
@@ -50,6 +48,7 @@ type
   JScriptIntrinsic = interface;
   JScriptIntrinsicBlur = interface;
   JElement = interface;
+  JDebug = interface;
 
   {****************************************}
   JALFileUtilClass = interface(JObjectClass)
@@ -69,8 +68,8 @@ type
     ['{3EDC638B-74FD-40D8-A09C-B92919C9D85B}']
   end;
 
-  {***********************************************************}
-  [JavaSignature('com/alcinoe/app/ALDatePickerDialogListener')]
+  {******************************************************************}
+  [JavaSignature('com/alcinoe/datepicker/ALDatePickerDialogListener')]
   JALDatePickerDialogListener = interface(IJavaInstance)
     ['{9A145783-462B-4E51-AAFC-48F68C79C3EA}']
     procedure onBtnClick(which: integer; year: integer; month: integer; dayOfMonth: integer); cdecl;
@@ -83,11 +82,12 @@ type
     {class} function init(context: JContext;
                           button_positive_text: JCharSequence;
 	                        button_negative_text: JCharSequence;
-                          button_neutral_text: JCharSequence): JALDatePickerDialog; cdecl;
+                          button_neutral_text: JCharSequence;
+                          title: JCharSequence): JALDatePickerDialog; cdecl;
   end;
 
-  {***************************************************}
-  [JavaSignature('com/alcinoe/app/ALDatePickerDialog')]
+  {**********************************************************}
+  [JavaSignature('com/alcinoe/datepicker/ALDatePickerDialog')]
   JALDatePickerDialog = interface(JObject)
     ['{DF4E7117-15AA-4063-9150-EEEC2356FCD7}']
     procedure show(year: integer;
@@ -98,26 +98,12 @@ type
   TJALDatePickerDialog = class(TJavaGenericImport<JALDatePickerDialogClass, JALDatePickerDialog>) end;
 
   {***********************************************}
-  JALSoftInputListenerClass = interface(IJavaClass)
-    ['{30390DEB-3807-4FD3-B0A9-5D53A3CC000A}']
-  end;
-
-  {*****************************************************************}
-  [JavaSignature('com/alcinoe/view/inputmethod/ALSoftInputListener')]
-  JALSoftInputListener = interface(IJavaInstance)
-    ['{674AD1A1-0A33-4519-978D-171D00176930}']
-    procedure onSoftInputShown; cdecl;
-    procedure onSoftInputHidden; cdecl;
-  end;
-  TJALSoftInputListener = class(TJavaGenericImport<JALSoftInputListenerClass, JALSoftInputListener>) end;
-
-  {***********************************************}
   JALKeyPreImeListenerClass = interface(IJavaClass)
     ['{E01C70E2-4BBF-47CB-8713-5A73344E9EA9}']
   end;
 
-  {************************************************************}
-  [JavaSignature('com/alcinoe/text/method/ALKeyPreImeListener')]
+  {*********************************************************}
+  [JavaSignature('com/alcinoe/edittext/ALKeyPreImeListener')]
   JALKeyPreImeListener = interface(IJavaInstance)
     ['{343578E2-962A-461E-ADD7-47A1E4BAA1D9}']
     function onKeyPreIme(keyCode: Integer; event: JKeyEvent): Boolean; cdecl;
@@ -133,34 +119,14 @@ type
     {class} function init(context: JContext; attrs: JAttributeSet; defStyleAttr: Integer; defStyleRes: Integer): JALEditText; cdecl; overload;
   end;
 
-  {**********************************************}
-  [JavaSignature('com/alcinoe/widget/ALEditText')]
+  {************************************************}
+  [JavaSignature('com/alcinoe/edittext/ALEditText')]
   JALEditText = interface(JEditText)
     ['{A3E765A1-44EB-45C0-9AA5-19A38C029CE5}']
-    procedure showSoftInput; cdecl;
-    procedure hideSoftInput; cdecl;
-    procedure setSoftInputListener(listener: JALSoftInputListener); cdecl;
     procedure setKeyPreImeListener(listener: JALKeyPreImeListener); cdecl;
     procedure setMaxLength(value: integer); cdecl;
   end;
   TJALEditText = class(TJavaGenericImport<JALEditTextClass, JALEditText>) end;
-
-  {*******************************************************}
-  JALControlHostLayoutClass = interface(JLinearLayoutClass)
-    ['{4BB0539E-F89F-4C09-BE60-9AD04F4BBA57}']
-    {class} function init(context: JContext): JALControlHostLayout; cdecl; overload;
-    {class} function init(context: JContext; attrs: JAttributeSet): JALControlHostLayout; cdecl; overload;
-    {class} function init(context: JContext; attrs: JAttributeSet; defStyleAttr: Integer): JALControlHostLayout; cdecl; overload;
-    {class} function init(context: JContext; attrs: JAttributeSet; defStyleAttr: Integer; defStyleRes: Integer): JALControlHostLayout; cdecl; overload;
-  end;
-
-  {*******************************************************}
-  [JavaSignature('com/alcinoe/widget/ALControlHostLayout')]
-  JALControlHostLayout = interface(JLinearLayout)
-    ['{601855E2-9BCF-4FB6-8438-FD26D55FFD8D}']
-    function disableMoveAnimations: boolean; cdecl;
-  end;
-  TJALControlHostLayout = class(TJavaGenericImport<JALControlHostLayoutClass, JALControlHostLayout>) end;
 
   {*********************************}
   JLogClass = interface(JObjectClass)
@@ -360,14 +326,14 @@ type
 
   {*************************************}
   JRuntimeClass = interface(JObjectClass)
-    ['{5F789EE2-7243-47D9-B950-F8B638DD3076}']
+    ['{B466FF95-339F-4060-965B-44350FDC2686}']
     {class} function getRuntime: JRuntime; cdecl;
   end;
 
   {**********************************}
   [JavaSignature('java/lang/Runtime')]
   JRuntime = interface(JObject)
-    ['{D56F91EA-6432-4391-ABBA-885F22C2E21A}']
+    ['{AB57684A-3434-4C09-ACD4-5EC5F220D02D}']
     //function exec(progArray: TJavaObjectArray<JString>): Jlang_Process; cdecl; overload;
     //function exec(progArray: TJavaObjectArray<JString>; envp: TJavaObjectArray<JString>): Jlang_Process; cdecl; overload;
     //function exec(progArray: TJavaObjectArray<JString>; envp: TJavaObjectArray<JString>; directory: JFile): Jlang_Process; cdecl; overload;
@@ -751,6 +717,93 @@ type
   end;
   TJElement = class(TJavaGenericImport<JElementClass, JElement>) end;
 
+  {***********************************}
+  JDebugClass = interface(JObjectClass)
+    ['{1DF44C41-5188-4659-9FCC-DD525AF42B89}']
+    //{class} function _GetSHOW_CLASSLOADER: Integer; cdecl;
+    //{class} function _GetSHOW_FULL_DETAIL: Integer; cdecl;
+    //{class} function _GetSHOW_INITIALIZED: Integer; cdecl;
+    //{class} function _GetTRACE_COUNT_ALLOCS: Integer; cdecl;
+    //{class} procedure changeDebugPort(port: Integer); cdecl;
+    //{class} procedure dumpHprofData(fileName: JString); cdecl;
+    //{class} function dumpService(name: JString; fd: JFileDescriptor; args: TJavaObjectArray<JString>): Boolean; cdecl;
+    //{class} procedure enableEmulatorTraceOutput; cdecl;
+    //{class} function getBinderDeathObjectCount: Integer; cdecl;
+    //{class} function getBinderLocalObjectCount: Integer; cdecl;
+    //{class} function getBinderProxyObjectCount: Integer; cdecl;
+    //{class} function getBinderReceivedTransactions: Integer; cdecl;
+    //{class} function getBinderSentTransactions: Integer; cdecl;
+    //{class} function getGlobalAllocCount: Integer; cdecl;
+    //{class} function getGlobalAllocSize: Integer; cdecl;
+    //{class} function getGlobalClassInitCount: Integer; cdecl;
+    //{class} function getGlobalClassInitTime: Integer; cdecl;
+    //{class} function getGlobalExternalAllocCount: Integer; cdecl;
+    //{class} function getGlobalExternalAllocSize: Integer; cdecl;
+    //{class} function getGlobalExternalFreedCount: Integer; cdecl;
+    //{class} function getGlobalExternalFreedSize: Integer; cdecl;
+    //{class} function getGlobalFreedCount: Integer; cdecl;
+    //{class} function getGlobalFreedSize: Integer; cdecl;
+    //{class} function getGlobalGcInvocationCount: Integer; cdecl;
+    //{class} function getLoadedClassCount: Integer; cdecl;
+    //{class} procedure getMemoryInfo(memoryInfo: JDebug_MemoryInfo); cdecl;
+    {class} function getNativeHeapAllocatedSize: Int64; cdecl;
+    {class} function getNativeHeapFreeSize: Int64; cdecl;
+    {class} function getNativeHeapSize: Int64; cdecl;
+    //{class} function getPss: Int64; cdecl;
+    //{class} function getRuntimeStat(statName: JString): JString; cdecl;
+    //{class} function getRuntimeStats: JMap; cdecl;
+    //{class} function getThreadAllocCount: Integer; cdecl;
+    //{class} function getThreadAllocSize: Integer; cdecl;
+    //{class} function getThreadExternalAllocCount: Integer; cdecl;
+    //{class} function getThreadExternalAllocSize: Integer; cdecl;
+    //{class} function getThreadGcInvocationCount: Integer; cdecl;
+    //{class} function isDebuggerConnected: Boolean; cdecl;
+    //{class} procedure printLoadedClasses(flags: Integer); cdecl;
+    //{class} procedure resetAllCounts; cdecl;
+    //{class} procedure resetGlobalAllocCount; cdecl;
+    //{class} procedure resetGlobalAllocSize; cdecl;
+    //{class} procedure resetGlobalClassInitCount; cdecl;
+    //{class} procedure resetGlobalClassInitTime; cdecl;
+    //{class} procedure resetGlobalExternalAllocCount; cdecl;
+    //{class} procedure resetGlobalExternalAllocSize; cdecl;
+    //{class} procedure resetGlobalExternalFreedCount; cdecl;
+    //{class} procedure resetGlobalExternalFreedSize; cdecl;
+    //{class} procedure resetGlobalFreedCount; cdecl;
+    //{class} procedure resetGlobalFreedSize; cdecl;
+    //{class} procedure resetGlobalGcInvocationCount; cdecl;
+    //{class} procedure resetThreadAllocCount; cdecl;
+    //{class} procedure resetThreadAllocSize; cdecl;
+    //{class} procedure resetThreadExternalAllocCount; cdecl;
+    //{class} procedure resetThreadExternalAllocSize; cdecl;
+    //{class} procedure resetThreadGcInvocationCount; cdecl;
+    //{class} function setAllocationLimit(limit: Integer): Integer; cdecl;
+    //{class} function setGlobalAllocationLimit(limit: Integer): Integer; cdecl;
+    //{class} procedure startAllocCounting; cdecl;
+    //{class} procedure startMethodTracing; cdecl; overload;
+    //{class} procedure startMethodTracing(traceName: JString); cdecl; overload;
+    //{class} procedure startMethodTracing(traceName: JString; bufferSize: Integer); cdecl; overload;
+    //{class} procedure startMethodTracing(traceName: JString; bufferSize: Integer; flags: Integer); cdecl; overload;
+    //{class} procedure startMethodTracingSampling(traceName: JString; bufferSize: Integer; intervalUs: Integer); cdecl;
+    //{class} procedure startNativeTracing; cdecl;
+    //{class} procedure stopAllocCounting; cdecl;
+    //{class} procedure stopMethodTracing; cdecl;
+    //{class} procedure stopNativeTracing; cdecl;
+    //{class} function threadCpuTimeNanos: Int64; cdecl;
+    //{class} procedure waitForDebugger; cdecl;
+    //{class} function waitingForDebugger: Boolean; cdecl;
+    //{class} property SHOW_CLASSLOADER: Integer read _GetSHOW_CLASSLOADER;
+    //{class} property SHOW_FULL_DETAIL: Integer read _GetSHOW_FULL_DETAIL;
+    //{class} property SHOW_INITIALIZED: Integer read _GetSHOW_INITIALIZED;
+    //{class} property TRACE_COUNT_ALLOCS: Integer read _GetTRACE_COUNT_ALLOCS;
+  end;
+
+  {*********************************}
+  [JavaSignature('android/os/Debug')]
+  JDebug = interface(JObject)
+    ['{365EDB47-3CE7-45FB-A2CD-9AF6DD7B2A49}']
+  end;
+  TJDebug = class(TJavaGenericImport<JDebugClass, JDebug>) end;
+
 implementation
 
 procedure RegisterTypes;
@@ -758,10 +811,8 @@ begin
   TRegTypes.RegisterType('ALAndroidApi.JALFileUtil', TypeInfo(ALAndroidApi.JALFileUtil));
   TRegTypes.RegisterType('ALAndroidApi.JALDatePickerDialogListener', TypeInfo(ALAndroidApi.JALDatePickerDialogListener));
   TRegTypes.RegisterType('ALAndroidApi.JALDatePickerDialog', TypeInfo(ALAndroidApi.JALDatePickerDialog));
-  TRegTypes.RegisterType('ALAndroidApi.JALSoftInputListener', TypeInfo(ALAndroidApi.JALSoftInputListener));
   TRegTypes.RegisterType('ALAndroidApi.JALKeyPreImeListener', TypeInfo(ALAndroidApi.JALKeyPreImeListener));
   TRegTypes.RegisterType('ALAndroidApi.JALEditText', TypeInfo(ALAndroidApi.JALEditText));
-  TRegTypes.RegisterType('ALAndroidApi.JALControlHostLayout', TypeInfo(ALAndroidApi.JALControlHostLayout));
   TRegTypes.RegisterType('ALAndroidApi.JLog', TypeInfo(ALAndroidApi.JLog));
   TRegTypes.RegisterType('ALAndroidApi.JStatFs', TypeInfo(ALAndroidApi.JStatFs));
   TRegTypes.RegisterType('ALAndroidApi.JLocalBroadcastManager', TypeInfo(ALAndroidApi.JLocalBroadcastManager));
@@ -782,6 +833,7 @@ begin
   TRegTypes.RegisterType('ALAndroidApi.JScriptIntrinsic', TypeInfo(ALAndroidApi.JScriptIntrinsic));
   TRegTypes.RegisterType('ALAndroidApi.JScriptIntrinsicBlur', TypeInfo(ALAndroidApi.JScriptIntrinsicBlur));
   TRegTypes.RegisterType('ALAndroidApi.JElement', TypeInfo(ALAndroidApi.JElement));
+  TRegTypes.RegisterType('ALAndroidApi.JDebug', TypeInfo(ALAndroidApi.JDebug));
 end;
 
 initialization

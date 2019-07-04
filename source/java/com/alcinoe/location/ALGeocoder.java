@@ -10,19 +10,21 @@ import java.io.InputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.lang.StringBuilder;
 import android.util.Log;
 
 public class ALGeocoder {
 
   //when you update this function update also it's equivalent delphi implementation (look for keyword https://maps.googleapis.com/maps/api/geocode/json)
-  public static Address getFromLocation (double latitude, double longitude, String language) {
+  public static Address getFromLocation (double latitude, double longitude, String language, String apiKey, StringBuilder apiStatus) {
     
     Address address = null;
     try {
 
       URL url = new URL("https://maps.googleapis.com/maps/api/geocode/json?"+
-                          "latlng=" + Double.toString(latitude) + "," + Double.toString(longitude) + "&"+
-                          "language="+language);
+                          "latlng="+Double.toString(latitude)+","+Double.toString(longitude)+"&"+
+                          "language="+language+"&"+
+                          "key="+apiKey);
       HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection(); 
       httpURLConnection.setConnectTimeout(60000);
       httpURLConnection.setReadTimeout(60000);      
@@ -107,6 +109,7 @@ public class ALGeocoder {
       //}
            
       String status = jsonObject.getString("status"); 
+      if (apiStatus != null) { apiStatus.append(status); }
       if (status.equalsIgnoreCase("OK")) {
         
         JSONArray results = jsonObject.getJSONArray("results"); 

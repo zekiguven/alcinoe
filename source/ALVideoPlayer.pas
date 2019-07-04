@@ -89,6 +89,8 @@ type
         fFpsStopWatch: TstopWatch;
         {$ENDIF}
         [Weak] FVideoPlayerControl: TALAndroidVideoPlayer;
+        fSdkInt: integer;
+        procedure DoOnFrameAvailable(surfaceTexture: JSurfaceTexture);
       public
         constructor Create(const aVideoPlayerControl: TALAndroidVideoPlayer);
         procedure onFrameAvailable(surfaceTexture: JSurfaceTexture); cdecl;
@@ -489,10 +491,11 @@ begin
   fFpsStopWatch := TStopWatch.StartNew;
   {$ENDIF}
   fVideoPlayerControl := aVideoPlayerControl;
+  fSdkInt := TJBuild_VERSION.JavaClass.SDK_INT;
 end;
 
-{**********************************************************************************************************}
-procedure TALAndroidVideoPlayer.TALFrameAvailableListener.onFrameAvailable(surfaceTexture: JSurfaceTexture);
+{************************************************************************************************************}
+procedure TALAndroidVideoPlayer.TALFrameAvailableListener.DoOnFrameAvailable(surfaceTexture: JSurfaceTexture);
 {$IF defined(DEBUG)}
 var aStopWatch: TStopWatch;
 {$ENDIF}
@@ -512,27 +515,13 @@ begin
   inc(fTotalFramesProcessed);
   {$ENDIF}
 
-  // https://developer.android.com/reference/android/graphics/SurfaceTexture.html
-  // SurfaceTexture objects may be created on any thread. updateTexImage() may only be called on the
-  // thread with the OpenGL ES context that contains the texture object. The frame-available callback
-  // is called on an arbitrary thread, so unless special care is taken updateTexImage() should not be
-  // called directly from the callback.
-  // so i as understand i can call updateTexImage in other thread than the current thread, it's
-  // seam to be thread safe - i already make opengl multithread however the updateTexImage seam
-  // to take around 1ms only so their is no really purpose to run it in a different thread than
-  // the main thread (who already have the OpenGL ES context)
-  //
-  // NOTE: as i do setOnFrameAvailableListener(SurfaceTexture.OnFrameAvailableListener listener,Handler handler)
-  //       with handler = TJHandler.JavaClass.init(TJLooper.javaclass.getMainLooper()) then this event will be
-  //       always called from the main UI thread
-
-  {$IF CompilerVersion > 32} // tokyo
-    {$MESSAGE WARN 'Check if this is still true and adjust the IFDEF'}
+  {$IF CompilerVersion > 33} // rio
+    {$MESSAGE WARN 'Check if FMX.Types3D.TTexture.SetSize is still the same and adjust the IFDEF'}
   {$ENDIF}
   if (fVideoPlayerControl.fbitmap.Width <> fVideoPlayerControl.fVideoWidth) or
      (fVideoPlayerControl.fbitmap.Height <> fVideoPlayerControl.fVideoHeight) then begin
     TALTextureAccessPrivate(fVideoPlayerControl.fBitmap).FWidth := fVideoPlayerControl.fVideoWidth;
-    TALTextureAccessPrivate(fVideoPlayerControl.fBitmap).FHeight := fVideoPlayerControl.fVideoHeight; // we can't use setsize because it's fill finalise the texture
+    TALTextureAccessPrivate(fVideoPlayerControl.fBitmap).FHeight := fVideoPlayerControl.fVideoHeight; // we can't use setsize because it's will finalise the texture
                                                                                                       // but with/height are used only in
                                                                                                       // procedure TCanvasHelper.TexRect(const DestCorners, SrcCorners: TCornersF; const Texture: TTexture; const Color1, Color2, Color3, Color4: TAlphaColor);
                                                                                                       // begin
@@ -560,6 +549,35 @@ begin
 
   if assigned(fVideoPlayerControl.fOnFrameAvailableEvent) then
     fVideoPlayerControl.fOnFrameAvailableEvent(fVideoPlayerControl);
+
+end;
+
+{**********************************************************************************************************}
+procedure TALAndroidVideoPlayer.TALFrameAvailableListener.onFrameAvailable(surfaceTexture: JSurfaceTexture);
+begin
+
+  // https://developer.android.com/reference/android/graphics/SurfaceTexture.html
+  // SurfaceTexture objects may be created on any thread. updateTexImage() may only be called on the
+  // thread with the OpenGL ES context that contains the texture object. The frame-available callback
+  // is called on an arbitrary thread, so unless special care is taken updateTexImage() should not be
+  // called directly from the callback.
+  // so i as understand i can call updateTexImage in other thread than the current thread, it's
+  // seam to be thread safe - i already make opengl multithread however the updateTexImage seam
+  // to take around 1ms only so their is no really purpose to run it in a different thread than
+  // the main thread (who already have the OpenGL ES context)
+  //
+  // NOTE: as i do setOnFrameAvailableListener(SurfaceTexture.OnFrameAvailableListener listener,Handler handler)
+  //       with handler = TJHandler.JavaClass.init(TJLooper.javaclass.getMainLooper()) then this event will be
+  //       always called from the main UI thread
+
+  if fSdkInt >= 21 {LOLLIPOP} then DoOnFrameAvailable(surfaceTexture)
+  else begin
+    TThread.Synchronize(nil,
+      Procedure
+      begin
+        DoOnFrameAvailable(surfaceTexture);
+      end);
+  end;
 
 end;
 
@@ -762,13 +780,14 @@ begin
   fEventListener := TALEventListener.Create(Self);
   fSimpleExoPlayer.AddListener(fEventListener);
   //-----
-  fBitmap := TalTexture.Create(False);
+  fBitmap := TalTexture.Create;
   ALInitializeEXTERNALOESTexture(fBitmap);
   fSurfaceTexture := TJSurfaceTexture.JavaClass.init(fBitmap.Handle);
   //-----
   fOnFrameAvailableEvent := nil;
   FOnFrameAvailableListener := TALFrameAvailableListener.Create(Self);
-  fSurfaceTexture.setOnFrameAvailableListener(FOnFrameAvailableListener, fHandler);
+  if (TJBuild_VERSION.JavaClass.SDK_INT >= 21 {LOLLIPOP}) then fSurfaceTexture.setOnFrameAvailableListener(FOnFrameAvailableListener, fHandler)
+  else fSurfaceTexture.setOnFrameAvailableListener(FOnFrameAvailableListener);
   //-----
   fSurface := TJSurface.JavaClass.init(fSurfaceTexture);
   fSimpleExoPlayer.setVideoSurface(fSurface);
@@ -1214,7 +1233,7 @@ begin
   end;
 
   //-----
-  fBitmap := TalTexture.Create(False);
+  fBitmap := TalTexture.Create;
   fBitmap.PixelFormat := TCustomContextIOS.PixelFormat;
 
   //-----
@@ -1648,11 +1667,11 @@ begin
         cfRElease(pointer(aPrevTextureRef));
 
       //-----
-      {$IF CompilerVersion > 32} // tokyo
-        {$MESSAGE WARN 'Check if this is still true and adjust the IFDEF'}
+      {$IF CompilerVersion > 33} // rio
+        {$MESSAGE WARN 'Check if FMX.Types3D.TTexture.SetSize is still the same and adjust the IFDEF'}
       {$ENDIF}
       TALTextureAccessPrivate(fBitmap).FWidth := aWidth;
-      TALTextureAccessPrivate(fBitmap).FHeight := aHeight; // we can't use setsize because it's fill finalise the texture
+      TALTextureAccessPrivate(fBitmap).FHeight := aHeight; // we can't use setsize because it's will finalise the texture
                                                            // but with/height are used only in
                                                            // procedure TCanvasHelper.TexRect(const DestCorners, SrcCorners: TCornersF; const Texture: TTexture; const Color1, Color2, Color3, Color4: TAlphaColor);
                                                            // begin

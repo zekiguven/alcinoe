@@ -20,7 +20,7 @@
 #include <System.Messaging.hpp>
 #include <FMX.Types.hpp>
 #include <FMX.Controls.hpp>
-#include <FMX.Ani.hpp>
+#include <ALFmxAni.hpp>
 #include <ALFmxLayouts.hpp>
 #include <ALFmxInertialMovement.hpp>
 
@@ -38,7 +38,7 @@ enum class DECLSPEC_DENUM TALTabTransition : unsigned char { None, Slide, FadeOu
 
 typedef void __fastcall (__closure *TALTabPositionChangeEvent)(System::TObject* Sender, const System::Types::TPointF &OldViewportPosition, const System::Types::TPointF &NewViewportPosition);
 
-typedef void __fastcall (__closure *TALTabAniTransitionInit)(System::TObject* const sender, const TALTabTransition ATransition, const double aVelocity, Fmx::Ani::TFloatAnimation* const aAnimation);
+typedef void __fastcall (__closure *TALTabAniTransitionInit)(System::TObject* const sender, const TALTabTransition ATransition, const double aVelocity, Alfmxani::TALFloatPropertyAnimation* const aAnimation);
 
 class PASCALIMPLEMENTATION TALTabItem : public Fmx::Controls::TControl
 {
@@ -116,7 +116,6 @@ public:
 private:
 	int FTabCount;
 	bool FMouseEvents;
-	bool fGestureEvents;
 	bool FchildreenChanging;
 	int FTabIndex;
 	bool FRealigningTabs;
@@ -124,7 +123,7 @@ private:
 	Alfmxinertialmovement::TALAniCalculations* FAniCalculations;
 	System::Types::TPointF fLastViewportPosition;
 	TALTabPositionChangeEvent FOnViewportPositionChange;
-	Fmx::Ani::TFloatAnimation* FAniTransition;
+	Alfmxani::TALFloatPropertyAnimation* FAniTransition;
 	Alfmxlayouts::TALLayout* FAniTransitionOverlay;
 	TALTabAniTransitionInit fOnAniTransitionInit;
 	System::Classes::TNotifyEvent fOnAniStart;
@@ -146,6 +145,10 @@ private:
 	void __fastcall AniTransitionFadeOutFinish(System::TObject* Sender);
 	int __fastcall GetItemsCount(void);
 	Fmx::Types::TFmxObject* __fastcall GetItem(const int AIndex);
+	void __fastcall internalMouseDown(System::Uitypes::TMouseButton Button, System::Classes::TShiftState Shift, float X, float Y);
+	void __fastcall internalMouseMove(System::Classes::TShiftState Shift, float X, float Y);
+	void __fastcall internalMouseUp(System::Uitypes::TMouseButton Button, System::Classes::TShiftState Shift, float X, float Y);
+	void __fastcall internalMouseLeave(void);
 	
 protected:
 	virtual void __fastcall Paint(void);
@@ -158,7 +161,6 @@ protected:
 	virtual void __fastcall DoRemoveObject(Fmx::Types::TFmxObject* const AObject);
 	virtual void __fastcall DoDeleteChildren(void);
 	virtual void __fastcall DoChange(void);
-	virtual void __fastcall CMGesture(Fmx::Types::TGestureEventInfo &EventInfo);
 	virtual void __fastcall MouseDown(System::Uitypes::TMouseButton Button, System::Classes::TShiftState Shift, float X, float Y);
 	virtual void __fastcall MouseMove(System::Classes::TShiftState Shift, float X, float Y);
 	virtual void __fastcall MouseUp(System::Uitypes::TMouseButton Button, System::Classes::TShiftState Shift, float X, float Y);
@@ -186,7 +188,7 @@ public:
 	__property int TabCount = {read=FTabCount, nodefault};
 	__property TALTabItem* Tabs[int AIndex] = {read=GetTabItem};
 	__property Alfmxinertialmovement::TALAniCalculations* AniCalculations = {read=FAniCalculations};
-	__property Fmx::Ani::TFloatAnimation* AniTransition = {read=FAniTransition};
+	__property Alfmxani::TALFloatPropertyAnimation* AniTransition = {read=FAniTransition};
 	__property int DeadZoneBeforeAcquireScrolling = {read=FDeadZoneBeforeAcquireScrolling, write=FDeadZoneBeforeAcquireScrolling, default=16};
 	
 __published:
